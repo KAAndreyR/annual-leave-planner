@@ -9,6 +9,7 @@ function variantSummary(v) {
 }
 function renderVariants() {
   const ul = $('#variants');
+  $('#sumVariants').textContent = S.variants.length ? 'сохранено ' + S.variants.length : 'пока пусто';
   if (!S.variants.length) { ul.innerHTML = '<li class="empty">Пока нет сохранённых вариантов.</li>'; return; }
   ul.innerHTML = S.variants.map(v => `<li><div class="vtxt"><b>${esc(v.name)}</b><span>${esc(variantSummary(v))}</span></div><button type="button" class="btn sm" data-vopen="${esc(v.id)}">Открыть</button><button type="button" class="x" data-vdel="${esc(v.id)}" aria-label="Удалить вариант">×</button></li>`).join('');
 }
@@ -85,8 +86,31 @@ function bind() {
   $('#janExtend').addEventListener('change', e => { S.prefs.janExtend = e.target.checked; syncChips(); touched(); paint(model); });
   $('#mainDest').addEventListener('change', e => { S.prefs.mainDest = e.target.value; syncChips(); touched(); });
   $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
-  $('#genBtn').addEventListener('click', generate);
-  $('#rangeMode').addEventListener('change', e => { rangeMode = e.target.checked; anchorPending = null; paint(model); });
+  const dlg = $('#genDialog');
+  $('#genOpen').addEventListener('click', () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); });
+  $('#genClose').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  $('#genBtn').addEventListener('click', () => { dlg.close(); generate(); });
+  $('#genQuick').addEventListener('click', generate);
+
+  // Блоки внизу: интервалы и деньги открыты, остальное свёрнуто; выбор помним в этом браузере
+  const FOLD_KEY = 'vacation-2027-folds-v2';
+  let folds = {};
+  try { folds = JSON.parse(localStorage.getItem(FOLD_KEY) || '{}') || {}; } catch (e) { folds = {}; }
+  document.querySelectorAll('details.fold').forEach(d => {
+    if (d.dataset.fold in folds) d.open = !!folds[d.dataset.fold];
+    d.addEventListener('toggle', () => { folds[d.dataset.fold] = d.open; try { localStorage.setItem(FOLD_KEY, JSON.stringify(folds)); } catch (e) {} });
+  });
+  // Ссылки «Скопировать план» ведут к кнопке копирования
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href="#save"]'); if (!a) return;
+    e.preventDefault();
+    const d = document.querySelector('details[data-fold="save"]'); if (d) d.open = true;
+    const btn = $('#copyPlan');
+    btn.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    btn.focus({ preventScroll: true });
+    btn.classList.add('flash'); setTimeout(() => btn.classList.remove('flash'), 1600);
+  });
   $('#undoBtn').addEventListener('click', doUndo);
   $('#clearBtn').addEventListener('click', clearAll);
   $('#exampleClear').addEventListener('click', clearAll);
@@ -131,7 +155,6 @@ function bind() {
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'я' || e.code === 'KeyZ')) { e.preventDefault(); doUndo(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === '1') setBrush(1); else if (e.key === '2') setBrush(2); else if (e.key === '3') setBrush(3); else if (e.key === '4') setBrush(0);
-    else if (e.key === 'Escape' && anchorPending != null) { anchorPending = null; paint(model); }
   });
 }
 

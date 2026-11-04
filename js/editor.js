@@ -20,13 +20,6 @@ function applyRange(arr, a, b, action) { const lo = Math.min(a, b), hi = Math.ma
 function sameSel(a, b) { for (let i = 0; i < N; i++) if (a[i] !== b[i]) return false; return true; }
 function holidayToast(i) { const D = DAYS[i]; toast(`${dLabel(i)} — ${D.hol}. Праздники в отпуск не входят (ст. 120 ТК).`); }
 function handleTap(i) {
-  if (rangeMode) {
-    if (anchorPending == null) { anchorPending = i; paint(model); toast('Теперь нажмите последний день диапазона'); return; }
-    const a = anchorPending; anchorPending = null;
-    const before = snapshot(); applyRange(S.sel, a, i, actionFor(a));
-    if (sameSel(before.sel, S.sel)) { render(); return; }
-    commit(before); lastClick = i; return;
-  }
   const before = snapshot(); applyRange(S.sel, i, i, actionFor(i));
   if (sameSel(before.sel, S.sel)) { if (DAYS[i].hol) holidayToast(i); return; }
   commit(before); lastClick = i;
@@ -38,7 +31,6 @@ monthsEl.addEventListener('pointerdown', e => {
   if (e.pointerType === 'mouse' || e.pointerType === 'pen') {
     if (e.button !== 0) return;
     e.preventDefault();
-    if (rangeMode) { handleTap(i); return; }
     const shift = e.shiftKey;
     const anchor = shift && lastClick != null ? lastClick : i;
     const before = snapshot();
@@ -81,7 +73,7 @@ function setBrush(b) {
 }
 function clearAll() {
   const before = snapshot();
-  S.sel = new Uint8Array(N); S.notes = {}; anchorPending = null; lastClick = null;
+  S.sel = new Uint8Array(N); S.notes = {}; lastClick = null;
   commit(before);
   toast('Календарь очищен', { label: 'Вернуть', fn: doUndo });
 }

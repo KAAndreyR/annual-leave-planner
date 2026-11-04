@@ -11,7 +11,7 @@ function renderStore() {
   const el = $('#storeStatus');
   if (!S.updatedAt) el.textContent = 'Изменения сохранятся автоматически в этом браузере, на этой странице.';
   else if (localOk === false) el.textContent = 'Браузер не даёт сохранять. Скопируйте план кнопкой внизу, чтобы не потерять его.';
-  else el.textContent = 'Сохранено в этом браузере в ' + new Date(S.updatedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '. Для другого устройства скопируйте план строкой.';
+  else el.innerHTML = 'Сохранено в этом браузере в ' + new Date(S.updatedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '. Для другого устройства <a href="#save" class="jump">скопируйте план строкой</a>.';
 }
 async function saveFile(filename, data) {
   try {
@@ -41,6 +41,15 @@ function parsePlan(text) {
   text = String(text || '').trim();
   if (!text) return { error: 'Поле пустое. Вставьте строку плана.' };
   if (text[0] === '{') { try { return { data: JSON.parse(text) }; } catch (e) { return { error: 'Это похоже на файл плана, но он повреждён.' }; } }
+  // Строки из таблицы (через табуляцию): Вид, С, По, Дней, Куда — переводим в обычный вид «Основной: 05.07–18.07 (Куда);»
+  text = text.split(/\r?\n/).map(line => {
+    if (!line.includes('\t')) return line;
+    const c = line.split('\t').map(x => x.trim());
+    if (!/\d{1,2}\.\d{1,2}/.test(c[1] || '')) return '';
+    const kind = /^доп/i.test(c[0]) ? 'Доп.' : /^(дей|day)/i.test(c[0]) ? 'Дейоффы' : 'Основной';
+    const place = c[4] ? ' (' + c[4].replace(/[()]/g, '') + ')' : '';
+    return kind + ': ' + c[1] + (c[2] && c[2] !== c[1] ? '–' + c[2] : '') + place + ';';
+  }).join('\n');
   const sel = new Uint8Array(N), notes = {};
   let kind = 1, count = 0; const bad = [];
   const re = /(доп)|(осн)|(дей|day)|(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?(?:\s*(?:[-–—]|по|до)\s*(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?)?(?:\s*\(([^)]*)\))?/gi;

@@ -8,7 +8,7 @@ const S = {
   prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '' },
   variants: [], example: false, updatedAt: 0
 };
-let brush = 1, rangeMode = false, anchorPending = null, lastClick = null, shiftHeld = false;
+let brush = 1, lastClick = null, shiftHeld = false;
 const undo = [];
 let model = null;
 

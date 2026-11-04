@@ -64,9 +64,10 @@ function splitMain(L, mc, goal) {
   if (L <= 16) return [L];
   const maxParts = mc <= 2 ? 2 : 4;
   let first, pieces;
-  if (goal === 'money') { first = rnd([16, 16, 16, 23, 14]); pieces = [9, 9, 9, 5, 7, 16]; }
-  else if (goal === 'rest') { first = rnd([14, 14, 14, 16, 21]); pieces = [5, 5, 5, 4, 12, 9]; }
-  else { const r = Math.random(); first = r < 0.12 ? L : r < 0.68 ? 14 : r < 0.84 ? 21 : 14 + Math.floor(Math.random() * Math.min(8, L - 13)); pieces = [7, 7, 7, 5, 9, 10, 14]; }
+  // Одна часть — ровно 14 дней (в «выгоде» 16: с субботы по воскресенье), остальное неделями — так отпуск ложится равномернее
+  if (goal === 'money') { first = 16; pieces = [9, 9, 7, 5]; }
+  else if (goal === 'rest') { first = 14; pieces = [5, 5, 4, 7]; }
+  else { first = 14; pieces = [7, 7, 7, 5, 9]; }
   first = Math.min(first, L);
   const parts = [first]; let rest = L - first;
   while (rest > 0) {
@@ -114,7 +115,16 @@ function blockGain(idx) {
 }
 // Веса цели: [отдых, деньги, случайность]
 const GOAL_W = { rest: [1, 0.05, 2], standard: [1, 1, 3], money: [0.1, 1, 0.8] };
-function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + Math.random() * w[2] * noise; }
+function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + Math.random() * w[2] * noise; }
+// Равномерность: насколько части разнесены по году (1 — идеально поровну, 0 — вплотную)
+const EVEN_W = { rest: 4, standard: 14, money: 6 };
+function evenness(placed) {
+  const starts = placed.filter(p => p.kind === 1 || p.separate).map(p => p.idx[0]).sort((a, b) => a - b);
+  if (starts.length < 2) return 0.5;
+  const gaps = starts.slice(1).map((s, k) => s - starts[k]);
+  gaps.push(N - starts[starts.length - 1] + starts[0]);
+  return Math.min(1, Math.min(...gaps) / (N / starts.length));
+}
 function bridgeExtra(sel, spec, E, minFrac, goal) {
   const cands = [];
   for (let s = 0; s < N; s++) {
@@ -131,7 +141,8 @@ function bridgeExtra(sel, spec, E, minFrac, goal) {
 }
 function placeExtra(sel, spec, E, minFrac, placed, goal) {
   let mode = S.prefs.extraMode;
-  if (mode === 'auto') mode = Math.random() < 0.5 ? 'attach' : 'bridge';
+  // Отдельно чаще: вплотную к двум неделям доп. отпуск даёт почти три недели подряд
+  if (mode === 'auto') mode = Math.random() < 0.2 ? 'attach' : 'bridge';
   if (mode === 'bridge' || !placed.length) {
     const b = bridgeExtra(sel, spec, E, minFrac, goal);
     if (b) return { idx: b, separate: true };
@@ -236,6 +247,7 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
     ex.idx.forEach(i => sel[i] = 2); placed.push({ idx: ex.idx, kind: 2, separate: ex.separate });
   }
   const ev = evalSel(sel);
+  ev.even = evenness(placed);
   return { sel, notes: assignResorts(placed, spec), ev, score: goalScore(ev, goal) };
 }
 function generate() {
@@ -252,7 +264,7 @@ function generate() {
   const pick = rnd(plans.slice(0, Math.min(goal === 'standard' ? 10 : 4, plans.length)));
   for (let i = 0; i < N; i++) if (spec.doff[i] && !pick.sel[i]) pick.sel[i] = 3;
   const before = snapshot();
-  S.sel = pick.sel; S.notes = pick.notes; anchorPending = null; lastClick = null;
+  S.sel = pick.sel; S.notes = pick.notes; lastClick = null;
   commit(before);
   const md = model;
   const desc = iv => { const r = resortFor(iv); return `<b>${rangeLabel(iv.s, iv.e)}</b> (${dn(iv.vac)})${r ? ' — ' + esc(r.name) : ''}`; };
@@ -280,7 +292,7 @@ function renderGenSum() {
   if (spec.wins.length) t += ' На точные даты: ' + spec.wins.map(r => r.name + ' (' + rangeLabel(r.winIdx[0], r.winIdx[r.winIdx.length - 1]) + ')').join(', ') + '.';
   if (spec.dest) t += spec.destSpec ? ' Главная поездка: ' + spec.dest.name + ' (' + monthsLabel(spec.destSpec.months) + ').' : ' Главная поездка: ' + spec.dest.name + ' — её сезон только в январе, включите «Хочу продлить январские».';
   if (spec.janExtend) t += ' Январские продлю: ' + (S.extraDays > 0 && S.prefs.extraMode !== 'attach' ? 'доп. отпуск' : 'самая короткая часть отпуска') + ' начнётся 11 января.';
-  $('#genSum').textContent = t;
+  document.querySelectorAll('[data-gensum]').forEach(el => { el.textContent = t; });
 }
 function syncChips() {
   document.querySelectorAll('[data-res]').forEach(el => el.setAttribute('aria-pressed', String(S.prefs.resorts.includes(el.dataset.res))));

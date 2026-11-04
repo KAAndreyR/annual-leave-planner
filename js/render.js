@@ -88,7 +88,7 @@ function paint(md) {
     const next = i < N - 1 && DAYS[i].dow !== 6 && DAYS[i + 1].d !== 1 && me && key(i + 1) === me;
     c.classList.toggle('el', !prev);
     c.classList.toggle('er', !next);
-    c.classList.toggle('anchor', anchorPending === i || (shiftHeld && !rangeMode && lastClick === i));
+    c.classList.toggle('anchor', shiftHeld && lastClick === i);
   }
   const spec = allowedSpec();
   monthsEl.querySelectorAll('.month').forEach(el => el.classList.toggle('pref', spec.active && spec.months.has(+el.dataset.m)));
@@ -141,6 +141,14 @@ function renderChecks(md) {
   const icon = { ok: '✓', warn: '!', bad: '×', info: 'i' };
   $('#checks').innerHTML = out.map(o => `<li class="${o.lvl}"><span class="ic" aria-hidden="true">${icon[o.lvl]}</span><span>${o.html}</span></li>`).join('');
   md._issues = out.filter(o => o.lvl === 'bad' || o.lvl === 'warn').length;
+  const nBad = out.filter(o => o.lvl === 'bad').length, nWarn = out.filter(o => o.lvl === 'warn').length;
+  const parts = md.main.length + md.extra.length, sum = $('#sumChecks');
+  if (!parts && !md.usedD) { sum.textContent = 'пока ничего не отмечено'; sum.className = 'fold-sum'; }
+  else {
+    const what = nBad ? nBad + ' ' + plural(nBad, 'ошибка', 'ошибки', 'ошибок') : nWarn ? nWarn + ' ' + plural(nWarn, 'замечание', 'замечания', 'замечаний') : 'всё по ТК';
+    sum.textContent = parts + ' ' + plural(parts, 'часть', 'части', 'частей') + ' · ' + what;
+    sum.className = 'fold-sum ' + (nBad ? 'bad' : nWarn ? 'warn' : 'ok');
+  }
 }
 function resortSelect(iv) {
   const mm = majorMonth(iv) + 1, cur = resortFor(iv);
@@ -194,19 +202,22 @@ function renderMoney(md) {
     const salaryPct = (mo.work - mo.vacWork) / mo.work * 100, vacPct = mo.paid * dp, total = salaryPct + vacPct;
     pay += vacPct; lost += mo.vacWork / mo.work * 100; paid += mo.paid; work += mo.vacWork;
     const r = v => sal ? `<small>${rub(v / 100 * sal)}</small>` : '';
-    rows.push(`<tr class="${mo.work >= 20 ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.vacWork} из ${mo.paid}</td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
+    rows.push(`<tr class="${mo.work >= 20 ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.paid} дн.<small>${mo.vacWork} ${plural(mo.vacWork, 'рабочий', 'рабочих', 'рабочих')}</small></td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
   }
   const week = w => 7 * dp / (5 / w * 100) * 100;
   $('#moneyTip').innerHTML = `Неделя отпуска (7 дней, из них 5 рабочих) в месяце с <b>22 рабочими днями</b> даёт ${pct(week(22))} зарплаты за эту неделю, в январе с 15 рабочими днями — ${pct(week(15))}. Поэтому отпуск в месяцах с 20+ рабочими днями выгоднее, а выходные внутри отпуска тоже оплачиваются.`;
   if (!paid) {
     $('#moneySummary').innerHTML = '<p class="hint">Отметьте дни отпуска — здесь появится расчёт.</p>';
     $('#moneyTable').innerHTML = '';
+    $('#sumMoney').textContent = 'отметьте дни отпуска'; $('#sumMoney').className = 'fold-sum';
     return;
   }
   const ratio = lost > 0 ? pay / lost * 100 : null;
   const diff = pay - lost;
   const sg = diff >= 0 ? '+' : '−';
   const bigCls = ratio != null && diff >= 0 ? 'up' : 'down';
+  $('#sumMoney').textContent = ratio == null ? 'нет рабочих дней в отпуске' : `${sg}${pct(Math.abs(diff))} заработка за год${sal ? ' · ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}`;
+  $('#sumMoney').className = 'fold-sum ' + (ratio != null && diff >= 0 ? 'ok' : 'bad');
   const bigText = ratio == null
     ? 'все отмеченные дни — выходные, а отпуск только на выходные по ТК не оформить'
     : `заработка за год к обычной зарплате${sal ? ', это ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}. Столько вы ${diff >= 0 ? 'получите сверху' : 'недополучите'}, если взять отпуск в эти дни`;
@@ -218,7 +229,7 @@ function renderMoney(md) {
       <div><dt>Пропущенная зарплата</dt><dd>${pct(lost)} заработка<small>${work} раб. ${plural(work, 'день', 'дня', 'дней')}${sal ? ' · ' + rub(lost / 100 * sal) : ''}</small></dd></div>
       <div><dt>Отпускные к пропущенному</dt><dd>${ratio == null ? '—' : pct(ratio)}<small>${ratio == null ? 'нет рабочих дней' : 'на 1 ₽ пропущенной зарплаты — ' + nf2.format(ratio / 100) + ' ₽ отпускных'}</small></dd></div>
     </dl>`;
-  $('#moneyTable').innerHTML = `<thead><tr><th>Месяц</th><th>Раб. дн.</th><th>Отпуск: раб. / всего</th><th>Зарплата</th><th>Отпускные</th><th>Итого</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+  $('#moneyTable').innerHTML = `<thead><tr><th>Месяц</th><th>Раб. дней</th><th>Отпуск</th><th>Зарплата</th><th>Отпускные</th><th>Итого</th></tr></thead><tbody>${rows.join('')}</tbody>`;
 }
 function renderMonthSums(md) {
   monthsEl.querySelectorAll('.msum').forEach(el => {
@@ -229,15 +240,18 @@ function renderMonthSums(md) {
     el.innerHTML = parts.join(' · ');
   });
 }
+// План по строкам, столбцы через табуляцию: вставляется в Excel / Google Таблицы по ячейкам и читается обратно
+const KIND_NAME = { 1: 'Основной', 2: 'Доп.', 3: 'Дейофф' };
 function planText(md) {
-  const part = arr => arr.map(iv => { const r = resortFor(iv); return fmtD(iv.s) + (iv.e > iv.s ? '–' + fmtD(iv.e) : '') + (r ? ' (' + r.name + ')' : ''); }).join(', ');
-  const t = [];
-  if (md.main.length) t.push('Основной: ' + part(md.main));
-  if (md.extra.length) t.push('Доп.: ' + part(md.extra));
-  if (md.doffs.length) t.push('Дейоффы: ' + md.doffs.map(iv => fmtD(iv.s) + (iv.e > iv.s ? '–' + fmtD(iv.e) : '')).join(', '));
-  return t.join('; ');
+  const fullD = i => fmtD(i) + '.' + YEAR;
+  const all = md.main.concat(md.extra, md.doffs).sort((a, b) => a.s - b.s);
+  if (!all.length) return '';
+  const rows = all.map(iv => { const r = iv.kind === 3 ? null : resortFor(iv); return [KIND_NAME[iv.kind], fullD(iv.s), fullD(iv.e), iv.vac, r ? r.name : ''].join('\t'); });
+  return ['Вид\tС\tПо\tДней\tКуда'].concat(rows).join('\n');
 }
 function renderExport(md) {
-  $('#planText').value = planText(md);
+  const ta = $('#planText');
+  ta.value = planText(md);
+  ta.rows = Math.max(3, Math.min(14, ta.value.split('\n').length + 1));
   renderVariants();
 }

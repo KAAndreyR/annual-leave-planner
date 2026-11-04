@@ -65,8 +65,8 @@
       </div>
       <div class="card import-box">
         <h2>Сохранённый план</h2>
-        <p class="hint">Вставьте строку, которую раньше скопировали кнопкой «Скопировать план», или свои даты в таком виде: <code>Основной: 05.07–18.07, 20.09–26.09; Доп.: 01.11–03.11; Дейоффы: 30.04, 11.06</code></p>
-        <textarea id="importText" class="text-in" rows="3" placeholder="Основной: 05.07–18.07; Доп.: 01.11–03.11"></textarea>
+        <p class="hint">Вставьте план, который раньше скопировали кнопкой <a href="#save" class="jump">«Скопировать план»</a> (можно прямо из таблицы), или свои даты в таком виде: <code>Основной: 05.07–18.07, 20.09–26.09; Доп.: 01.11–03.11; Дейоффы: 30.04, 11.06</code></p>
+        <textarea id="importText" class="text-in" rows="3" placeholder="Основной: 05.07–18.07; Доп.: 01.11–03.11 — или строки из таблицы"></textarea>
         <div class="row">
           <button type="button" class="btn primary" id="importApply">Применить</button>
           <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
@@ -78,41 +78,60 @@
   </section>
 
   <section class="wrap block">
-    <div class="card">
-      <div class="sec-head">
-        <h2>Собрать отпуск под себя</h2>
-        <p>Выберите цель и отметьте, что нравится: направления, время года, месяцы, в любом сочетании. Если ничего не отмечено, подберу даты под цель, а курорт — по сезону.</p>
+    <div class="card gen-card">
+      <div class="gen-head">
+        <div class="gen-head-text">
+          <h2>Собрать отпуск под себя</h2>
+          <p class="gen-sum" data-gensum></p>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="genOpen">Настроить подбор…</button>
+          <button type="button" class="btn primary" id="genQuick">Собрать вариант</button>
+        </div>
       </div>
-      <div class="filter goals-wrap">
-        <h3>Цель</h3>
-        <div class="goals" id="goalSeg" role="radiogroup" aria-label="Цель подбора"></div>
-        <label class="toggle" title="Без галки январь в подбор не попадает: в нём всего 15 рабочих дней, это самый невыгодный месяц"><input type="checkbox" id="janExtend">Хочу продлить январские <span class="fine">— часть отпуска начнётся 11 января; без галки январь не беру</span></label>
+      <div class="gen-note" id="genNote" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <dialog class="modal" id="genDialog" aria-labelledby="genTitle">
+    <div class="modal-in">
+      <header class="modal-head">
+        <h2 id="genTitle">Собрать отпуск под себя</h2>
+        <button type="button" class="x" id="genClose" aria-label="Закрыть">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="hint modal-lede">Выберите цель и отметьте, что нравится: направления, время года, месяцы, в любом сочетании. Если ничего не отмечено, подберу даты под цель, а курорт — по сезону.</p>
+          <div class="filter goals-wrap">
+            <h3>Цель</h3>
+            <div class="goals" id="goalSeg" role="radiogroup" aria-label="Цель подбора"></div>
+            <label class="toggle" title="Без галки январь в подбор не попадает: в нём всего 15 рабочих дней, это самый невыгодный месяц"><input type="checkbox" id="janExtend">Хочу продлить январские <span class="fine">— часть отпуска начнётся 11 января; без галки январь не беру</span></label>
+          </div>
+          <div class="filter main-dest">
+            <h3><label for="mainDest">Главная поездка · часть от 14 дней</label></h3>
+            <div class="row"><select id="mainDest" class="dest-select"></select><span class="fine">Самую длинную часть отпуска поставлю в сезон этого направления</span></div>
+          </div>
+          <div class="filter">
+            <h3 id="resHead">Куда</h3>
+            <div class="res-groups" id="resortChips"></div>
+          </div>
+          <div class="filter-row">
+            <div class="filter"><h3>Время года</h3><div class="chips" id="seasonChips"></div></div>
+            <div class="filter"><h3>Месяцы · рабочих дней</h3><div class="chips" id="monthChips"></div></div>
+          </div>
       </div>
-      <div class="filter main-dest">
-        <h3><label for="mainDest">Главная поездка · часть от 14 дней</label></h3>
-        <div class="row"><select id="mainDest" class="dest-select"></select><span class="fine">Самую длинную часть отпуска поставлю в сезон этого направления</span></div>
-      </div>
-      <div class="filter">
-        <h3 id="resHead">Куда</h3>
-        <div class="res-groups" id="resortChips"></div>
-      </div>
-      <div class="filter-row">
-        <div class="filter"><h3>Время года</h3><div class="chips" id="seasonChips"></div></div>
-        <div class="filter"><h3>Месяцы · рабочих дней</h3><div class="chips" id="monthChips"></div></div>
-      </div>
-      <div class="genbar">
+      <footer class="modal-foot genbar">
         <label for="extraMode">Доп. отпуск</label>
         <select id="extraMode">
           <option value="auto">как получится</option>
           <option value="attach">вплотную к основному</option>
           <option value="bridge">отдельно от основного</option>
-        </select>        <button type="button" class="btn primary" id="genBtn">Собрать вариант</button>
+        </select>
+        <p class="gen-sum" data-gensum></p>
         <button type="button" class="btn ghost" id="clearFilters">Сбросить выбор</button>
-        <p class="gen-sum" id="genSum"></p>
-      </div>
-      <div class="gen-note" id="genNote" aria-live="polite"></div>
+        <button type="button" class="btn primary" id="genBtn">Собрать вариант</button>
+      </footer>
     </div>
-  </section>
+  </dialog>
 
   <section class="wrap block" id="calendar">
     <div class="toolbar">
@@ -122,7 +141,6 @@
         <button type="button" role="radio" aria-checked="false" data-brush="3"><span class="sw d"></span>Дейофф</button>
         <button type="button" role="radio" aria-checked="false" data-brush="0"><span class="sw x"></span>Ластик</button>
       </div>
-      <label class="toggle"><input type="checkbox" id="rangeMode">Диапазон двумя нажатиями</label>
       <button type="button" class="btn ghost sm" id="undoBtn">Отменить</button>
       <button type="button" class="btn ghost sm" id="clearBtn">Очистить</button>
       <div class="tally" id="tally"></div>
@@ -148,47 +166,47 @@
   </section>
 
   <section class="wrap block results">
-    <div class="card">
-      <h2>Интервалы и проверка</h2>
+    <details class="card fold" data-fold="checks" open>
+      <summary><h2>Интервалы и проверка</h2><span class="fold-sum" id="sumChecks"></span></summary>
       <ul class="checks" id="checks"></ul>
       <div class="ivgroup"><h3><span class="sw m"></span>Основной отпуск</h3><ol class="ivs" id="mainList"></ol></div>
       <div class="ivgroup"><h3><span class="sw e"></span>Дополнительный отпуск</h3><ol class="ivs" id="extraList"></ol></div>
       <div class="ivgroup" id="doffGroup" hidden><h3><span class="sw d"></span>Дейоффы</h3><ol class="ivs" id="doffList"></ol></div>
-    </div>
-    <div class="card">
-      <h2>Деньги</h2>
-      <p class="hint" style="margin:-6px 0 12px">Расчёт примерный: без учёта премий, изменений зарплаты и больничных.</p>
+    </details>
+    <details class="card fold" data-fold="money" open>
+      <summary><h2>Деньги</h2><span class="fold-sum" id="sumMoney"></span></summary>
+      <p class="hint" style="margin:0 0 12px">Расчёт примерный: без учёта премий, изменений зарплаты и больничных.</p>
       <div id="moneySummary"></div>
       <div class="table-wrap"><table id="moneyTable"></table></div>
       <p class="tip" id="moneyTip"></p>
       <p class="fine" style="margin-top:12px">По ст. 139 ТК средний дневной заработок = заработок за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него. Праздники внутри отпуска не оплачиваются отпускными: они не входят в отпуск, а зарплата за них сохраняется. Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют. Всё до НДФЛ. Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
-    </div>
+    </details>
   </section>
 
-  <section class="wrap block save-grid">
-    <div class="card">
-      <h2>Сохранить и поделиться</h2>
-      <p class="hint">План сам сохраняется в этом браузере. Чтобы перенести его на другой компьютер, скопируйте строку и потом вставьте её в поле «Сохранённый план» наверху.</p>
-      <textarea id="planText" class="text-in" rows="3" readonly aria-label="План одной строкой"></textarea>
+  <section class="wrap block save-grid" id="save">
+    <details class="card fold" data-fold="save">
+      <summary><h2>Сохранить и поделиться</h2><span class="fold-sum">строка плана, CSV для календаря, файл</span></summary>
+      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте в поле «Сохранённый план» наверху.</p>
+      <textarea id="planText" class="text-in plan-table" rows="3" readonly wrap="off" aria-label="План по строкам"></textarea>
       <div class="row">
         <button type="button" class="btn primary" id="copyPlan">Скопировать план</button>
         <button type="button" class="btn" id="dlCsv">Скачать для календаря (CSV)</button>
         <button type="button" class="btn ghost" id="dlJson">Скачать файл плана</button>
       </div>
       <p class="fine">CSV импортируется в Google Календарь (Настройки → Импорт и экспорт) и Outlook. Файл плана хранит всё, включая курорты и фильтры; его можно загрузить обратно.</p>
-    </div>
-    <div class="card">
-      <h2>Варианты</h2>
+    </details>
+    <details class="card fold" data-fold="variants">
+      <summary><h2>Варианты</h2><span class="fold-sum" id="sumVariants"></span></summary>
       <p class="hint">Понравился вариант, но хочется посмотреть другие? Запомните его и генерируйте дальше.</p>
       <ul class="variants" id="variants"></ul>
       <div class="row"><button type="button" class="btn" id="saveVariant">Запомнить текущий вариант</button></div>
-    </div>
+    </details>
   </section>
 
   <section class="wrap block rules">
-    <div class="card">
-      <h2>Что говорит Трудовой кодекс</h2>
-      <ul class="law" style="margin-top:14px">
+    <details class="card fold" data-fold="law">
+      <summary><h2>Что говорит Трудовой кодекс</h2><span class="fold-sum">основные статьи об отпуске</span></summary>
+      <ul class="law">
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/7c366ded2c0c00fa6bcf8f2ca11917e7075f9cef/" target="_blank" rel="noopener">115</a></span><span>Ежегодный основной оплачиваемый отпуск — 28 календарных дней.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/adc5202dbc745c6b1bae2e9860039e581a05eb77/" target="_blank" rel="noopener">116</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/593210d78d82ade45cec8adadc140e0bdf930b99/" target="_blank" rel="noopener">119</a></span><span>Дополнительный отпуск, например за ненормированный рабочий день, — не меньше 3 календарных дней.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/1ea2cd88521106bc484f44be9e24fa81034d13e5/" target="_blank" rel="noopener">120</a></span><span>Отпуск считается в календарных днях: выходные внутри него входят в отпуск, а нерабочие праздники не входят и продлевают его. Перенесённые выходные (22 февраля, 3 и 10 мая, 14 июня, 5 ноября, 31 декабря) — это выходные, а не праздники, поэтому в отпуск входят. Дополнительный отпуск суммируется с основным.</span></li>
@@ -199,17 +217,17 @@
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/8a5e832c3c2c89862b7a54ce439343796dbea548/" target="_blank" rel="noopener">126</a></span><span>Деньгами можно заменить только часть отпуска сверх 28 дней.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/a0a891ee650687026ef53d5d1194983419be6793/" target="_blank" rel="noopener">136</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/48242e0d7e3c73ff276bc1dea5aaf33de03ff34a/" target="_blank" rel="noopener">139</a></span><span>Отпускные платят не позже чем за 3 дня до начала; средний дневной заработок = доход за 12 месяцев / 12 / 29,3.</span></li>
       </ul>
-    </div>
-    <div class="card">
-      <h2>Праздники и переносы 2027</h2>
-      <dl class="dl2" style="margin-top:14px">
+    </details>
+    <details class="card fold" data-fold="holidays">
+      <summary><h2>Праздники и переносы 2027</h2><span class="fold-sum">праздники, переносы, длинные выходные</span></summary>
+      <dl class="dl2">
         <div><dt>Нерабочие праздники · <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/98ef2900507766e70ff29c0b9d8e2353ea80a1cf/" target="_blank" rel="noopener">ст. 112 ТК</a></dt><dd>1–8 января, 23 февраля, 8 марта, 1 и 9 мая, 12 июня, 4 ноября</dd></div>
         <div><dt>Переносы · <a href="https://www.consultant.ru/document/cons_doc_LAW_544706/" target="_blank" rel="noopener">постановление № 1187 от 17.09.2026</a></dt><dd>2 января (сб) → 5 ноября (пт); 3 января (вс) → 31 декабря (пт); 20 февраля (сб) → 22 февраля (пн), 20 февраля — рабочая суббота</dd></div>
         <div><dt>Автоматически · <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/98ef2900507766e70ff29c0b9d8e2353ea80a1cf/" target="_blank" rel="noopener">ч. 2 ст. 112 ТК</a></dt><dd>1 мая (сб) → 3 мая (пн); 9 мая (вс) → 10 мая (пн); 12 июня (сб) → 14 июня (пн)</dd></div>
         <div><dt>Длинные выходные</dt><dd>31 декабря 2026 – 10 января (11 дней), 21–23 февраля, 6–8 марта, 1–3 мая, 8–10 мая, 12–14 июня, 4–7 ноября, с 31 декабря</dd></div>
         <div><dt>Сокращённые на час дни</dt><dd>20 февраля, 30 апреля, 11 июня, 3 ноября</dd></div>
       </dl>
-    </div>
+    </details>
   </section>
 </main>
 
