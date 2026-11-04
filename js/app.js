@@ -86,11 +86,24 @@ function bind() {
   $('#janExtend').addEventListener('change', e => { S.prefs.janExtend = e.target.checked; syncChips(); touched(); paint(model); });
   $('#mainDest').addEventListener('change', e => { S.prefs.mainDest = e.target.value; syncChips(); touched(); });
   $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
-  const dlg = $('#genDialog');
-  $('#genOpen').addEventListener('click', () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); });
-  $('#genClose').addEventListener('click', () => dlg.close());
-  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
-  $('#genBtn').addEventListener('click', () => { dlg.close(); generate(); });
+  // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
+  const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
+  const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
+  if (!native) document.body.appendChild(backdrop);
+  const openGen = () => {
+    if (native) { if (!dlg.open) dlg.showModal(); return; }
+    dlg.setAttribute('open', ''); dlg.classList.add('modal-fallback'); backdrop.hidden = false; document.documentElement.classList.add('modal-open');
+  };
+  const closeGen = () => {
+    if (native) { if (dlg.open) dlg.close(); return; }
+    dlg.removeAttribute('open'); dlg.classList.remove('modal-fallback'); backdrop.hidden = true; document.documentElement.classList.remove('modal-open');
+  };
+  $('#genOpen').addEventListener('click', openGen);
+  $('#genClose').addEventListener('click', closeGen);
+  dlg.addEventListener('click', e => { if (e.target === dlg) closeGen(); });
+  backdrop.addEventListener('click', closeGen);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !native && dlg.hasAttribute('open')) closeGen(); });
+  $('#genBtn').addEventListener('click', () => { closeGen(); generate(); });
   $('#genQuick').addEventListener('click', generate);
 
   // Блоки внизу: интервалы и деньги открыты, остальное свёрнуто; выбор помним в этом браузере
@@ -180,10 +193,4 @@ syncInputs();
 bind();
 render();
 renderStore();
-// Показываем страницу целиком, когда всё отрисовано и шрифты загружены (но не дольше 1,5 с) — без прыжков вёрстки
-(() => {
-  const show = () => document.documentElement.classList.remove('booting');
-  const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-  Promise.race([fonts, new Promise(r => setTimeout(r, 1500))]).then(() => requestAnimationFrame(show), show);
-})();
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };

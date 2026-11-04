@@ -3,16 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- boot: страница скрыта, пока скрипты не отрисуют её и не загрузятся шрифты (снимает js/app.js; через 3 с — в любом случае) -->
-<style>html{background:#F2F5F7}@media (prefers-color-scheme:dark){html{background:#0F151C}}html.booting body{visibility:hidden}</style>
-<script>document.documentElement.classList.add('booting');setTimeout(function(){document.documentElement.classList.remove('booting')},3000);</script>
-<!-- /boot -->
+<style>html{background:#F2F5F7}@media (prefers-color-scheme:dark){html{background:#0F151C}}</style>
 <meta name="description" content="Планировщик ежегодного отпуска на 2027 год: производственный календарь, правила ТК РФ, подбор дат и расчёт отпускных.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%96%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <title>Планировщик отпуска 2027</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;700&display=optional">
 <style>
 /* Макет: настенный производственный календарь. Сверху пульт (дни, импорт, подбор), в центре сетка 12 месяцев, ниже ведомость интервалов, денег и правил. */
 :root{
@@ -190,6 +187,10 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
 .modal{border:0;padding:0;border-radius:16px;background:var(--card);color:var(--ink);width:min(1180px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);box-shadow:0 24px 64px rgba(0,0,0,.28)}
 .modal::backdrop{background:rgba(15,21,28,.55)}
 html:has(dialog[open]){overflow:hidden}
+dialog:not([open]){display:none}
+html.modal-open{overflow:hidden}
+.modal.modal-fallback{position:fixed;inset:16px;margin:auto;height:max-content;z-index:41}
+.modal-backdrop{position:fixed;inset:0;z-index:40;background:rgba(15,21,28,.55)}
 .modal-in{display:flex;flex-direction:column;max-height:calc(100dvh - 32px)}
 .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 14px 20px;border-bottom:1px solid var(--line)}
 .modal-body{overflow:auto;padding:16px 20px 20px;overscroll-behavior:contain}
@@ -257,6 +258,11 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 @media (max-width:1180px){.months{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:860px){.months{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:540px){.months{grid-template-columns:minmax(0,1fr)}}
+/* Пока скрипты не нарисовали календарь, держим под него место — чтобы ниже ничего не съезжало */
+.months:empty{min-height:880px}
+@media (max-width:1180px){.months:empty{min-height:1195px}}
+@media (max-width:860px){.months:empty{min-height:1765px}}
+@media (max-width:540px){.months:empty{min-height:3430px}}
 .month{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 10px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .month.pref{border-color:var(--sea);box-shadow:inset 0 0 0 1px var(--sea)}
 .month header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px}
@@ -448,7 +454,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       <div class="gen-head">
         <div class="gen-head-text">
           <h2>Собрать отпуск под себя</h2>
-          <p class="gen-sum" data-gensum></p>
+          <p class="gen-sum" data-gensum>Ничего не выбрано: подберу с февраля по декабрь, куда поехать — по сезону.</p>
         </div>
         <div class="row">
           <button type="button" class="btn" id="genOpen">Настроить подбор…</button>
@@ -524,7 +530,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       <span><i class="lg s">30</i>сокращённый день</span>
       <span><i class="lg g">22</i>месяц с 20+ рабочими днями</span>
     </div>
-    <div class="example" id="exampleBanner" hidden>
+    <div class="example" id="exampleBanner">
       <p>Это пример плана, чтобы было видно, как всё работает. Отметьте свои дни поверх, очистите календарь или соберите вариант.</p>
       <button type="button" class="btn sm" id="exampleClear">Очистить календарь</button>
     </div>
@@ -1752,11 +1758,24 @@ function bind() {
   $('#janExtend').addEventListener('change', e => { S.prefs.janExtend = e.target.checked; syncChips(); touched(); paint(model); });
   $('#mainDest').addEventListener('change', e => { S.prefs.mainDest = e.target.value; syncChips(); touched(); });
   $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
-  const dlg = $('#genDialog');
-  $('#genOpen').addEventListener('click', () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); });
-  $('#genClose').addEventListener('click', () => dlg.close());
-  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
-  $('#genBtn').addEventListener('click', () => { dlg.close(); generate(); });
+  // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
+  const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
+  const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
+  if (!native) document.body.appendChild(backdrop);
+  const openGen = () => {
+    if (native) { if (!dlg.open) dlg.showModal(); return; }
+    dlg.setAttribute('open', ''); dlg.classList.add('modal-fallback'); backdrop.hidden = false; document.documentElement.classList.add('modal-open');
+  };
+  const closeGen = () => {
+    if (native) { if (dlg.open) dlg.close(); return; }
+    dlg.removeAttribute('open'); dlg.classList.remove('modal-fallback'); backdrop.hidden = true; document.documentElement.classList.remove('modal-open');
+  };
+  $('#genOpen').addEventListener('click', openGen);
+  $('#genClose').addEventListener('click', closeGen);
+  dlg.addEventListener('click', e => { if (e.target === dlg) closeGen(); });
+  backdrop.addEventListener('click', closeGen);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !native && dlg.hasAttribute('open')) closeGen(); });
+  $('#genBtn').addEventListener('click', () => { closeGen(); generate(); });
   $('#genQuick').addEventListener('click', generate);
 
   // Блоки внизу: интервалы и деньги открыты, остальное свёрнуто; выбор помним в этом браузере
@@ -1846,12 +1865,6 @@ syncInputs();
 bind();
 render();
 renderStore();
-// Показываем страницу целиком, когда всё отрисовано и шрифты загружены (но не дольше 1,5 с) — без прыжков вёрстки
-(() => {
-  const show = () => document.documentElement.classList.remove('booting');
-  const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-  Promise.race([fonts, new Promise(r => setTimeout(r, 1500))]).then(() => requestAnimationFrame(show), show);
-})();
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };
 </script>
 </body>

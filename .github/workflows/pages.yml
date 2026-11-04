@@ -23,6 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # Метка версии у css и js: после публикации браузер не возьмёт старые файлы из кеша вперемешку с новой страницей
+      - name: Метка версии у css и js
+        run: |
+          v="${GITHUB_SHA::7}"
+          sed -i -E "s#(href=\"css/[^\"?]+|src=\"js/[^\"?]+)\"#\\1?v=$v\"#g" index.html
+          grep -c "?v=$v" index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
