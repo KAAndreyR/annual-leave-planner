@@ -12,7 +12,9 @@ function commit(before, keepExample) {
 function doUndo() {
   const u = undo.pop();
   if (!u) { toast('Отменять нечего'); return; }
-  S.sel = u.sel; S.notes = u.notes; S.example = false;
+  if (u.full) { applyData(u.full, { keepVariants: false }); syncInputs(); }
+  else { S.sel = u.sel; S.notes = u.notes; }
+  S.example = false;
   touched(); render();
 }
 function actionFor(i) { if (brush === 0) return 0; return S.sel[i] === brush ? 0 : brush; }

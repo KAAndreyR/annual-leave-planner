@@ -5,7 +5,11 @@
 const LS_KEY = 'vacation-2027-v1', LS_KEY_OLD = 'otpusk-2027-v1';
 let localOk = null;
 function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(serialize())); return true; } catch (e) { return false; } }
-function loadLocal() { try { const t = localStorage.getItem(LS_KEY) || localStorage.getItem(LS_KEY_OLD); return t ? JSON.parse(t) : null; } catch (e) { return null; } }
+function loadLocal() {
+  // Если новая запись повреждена, пробуем старую
+  for (const key of [LS_KEY, LS_KEY_OLD]) { try { const t = localStorage.getItem(key); if (t) return JSON.parse(t); } catch (e) {} }
+  return null;
+}
 function touched() { S.updatedAt = Date.now(); localOk = saveLocal(); renderStore(); }
 function renderStore() {
   const el = $('#storeStatus');
@@ -33,9 +37,10 @@ function findResort(text) {
   const t = text.toLowerCase().replace(/ё/g, 'е').trim(); if (!t) return null;
   const nm = r => r.name.toLowerCase().replace(/ё/g, 'е');
   const words = t.split(/[^a-zа-я-]+/).filter(w => w.length >= 4);
+  const words3 = t.split(/[^a-zа-я-]+/).filter(w => w.length >= 3); // страны вроде «ОАЭ»
   const wide = r => (r.name + ' ' + r.where + ' ' + (r.note || '')).toLowerCase().replace(/ё/g, 'е');
   return RESORTS.find(r => nm(r) === t) || RESORTS.find(r => nm(r).includes(t) || t.includes(nm(r))) ||
-    RESORTS.find(r => words.some(w => nm(r).includes(w))) || RESORTS.find(r => words.some(w => wide(r).includes(w))) || null;
+    RESORTS.find(r => words.some(w => nm(r).includes(w))) || RESORTS.find(r => words3.some(w => wide(r).includes(w))) || null;
 }
 function parsePlan(text) {
   text = String(text || '').trim();
@@ -74,8 +79,10 @@ function applyImport(text, source) {
   if (res.error) { toast(res.error); return; }
   const before = snapshot();
   if (res.data) {
-    if (!applyData(res.data, { keepVariants: false })) { toast('Это план не на 2027 год или файл не тот.'); return; }
-    syncInputs(); commit(before, true); toast('План загружен' + (source ? ' из файла' : ''));
+    const full = serialize();
+    if (!applyData(res.data, { mergeVariants: true })) { toast('Это план не на 2027 год или файл не тот.'); return; }
+    before.full = full;
+    syncInputs(); commit(before, true); toast('План загружен' + (source ? ' из файла' : '') + '. «Отменить» вернёт прежний.');
     return;
   }
   S.sel = res.sel; S.notes = res.notes;

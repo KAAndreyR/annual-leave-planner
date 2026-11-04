@@ -85,6 +85,25 @@ function bind() {
   $('#extraMode').addEventListener('change', e => { S.prefs.extraMode = e.target.value; renderGenSum(); touched(); });
   $('#janExtend').addEventListener('change', e => { S.prefs.janExtend = e.target.checked; syncChips(); touched(); paint(model); });
   $('#mainDest').addEventListener('change', e => { S.prefs.mainDest = e.target.value; syncChips(); touched(); });
+  // Особые даты
+  const addSpecial = () => {
+    const v = $('#specialDate').value, m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    const i = m ? toIdx(+m[3], +m[2], m[1]) : null;
+    if (i == null) { toast('Выберите дату в 2027 году'); return; }
+    if (S.prefs.special.some(x => x.i === i)) { toast('Эта дата уже есть'); return; }
+    if (S.prefs.special.length >= 20) { toast('Хватит 20 дат'); return; }
+    S.prefs.special.push({ i, label: $('#specialLabel').value.trim().slice(0, 40) });
+    S.prefs.special.sort((a, b) => a.i - b.i);
+    $('#specialDate').value = ''; $('#specialLabel').value = '';
+    syncChips(); touched(); render();
+  };
+  $('#specialAdd').addEventListener('click', addSpecial);
+  ['specialDate', 'specialLabel'].forEach(id => $('#' + id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSpecial(); } }));
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-special-del]'); if (!b) return;
+    S.prefs.special = S.prefs.special.filter(x => x.i !== +b.dataset.specialDel);
+    syncChips(); touched(); render();
+  });
   $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
   // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
   const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
@@ -154,7 +173,7 @@ function bind() {
   });
   $('#dlJson').addEventListener('click', () => saveFile('vacation-2027.json', JSON.stringify(serialize(), null, 2)));
   $('#dlCsv').addEventListener('click', () => {
-    if (!model.main.length && !model.extra.length) { toast('План пуст — отметьте дни'); return; }
+    if (!model.main.length && !model.extra.length && !model.doffs.length) { toast('План пуст — отметьте дни'); return; }
     const us = i => pad(DAYS[i].m + 1) + '/' + pad(DAYS[i].d) + '/' + YEAR;
     const q = s => '"' + String(s).replace(/"/g, '""') + '"';
     const rows = ['Subject,Start Date,End Date,All Day Event,Description'];
@@ -198,9 +217,18 @@ buildBars();
 buildCalendar();
 buildChips();
 const saved = loadLocal();
-if (!(saved && applyData(saved))) loadExample();
-syncInputs();
+let restored = false;
+try { restored = !!(saved && applyData(saved)); } catch (e) { restored = false; }
+if (!restored) loadExample();
 bind();
-render();
+try { syncInputs(); render(); }
+catch (e) {
+  // Сохранённый план не открывается — показываем пример, чтобы страница работала
+  console.error(e);
+  Object.assign(S, { mainDays: 28, extraDays: 3, dayoffDays: 0, variants: [],
+    prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] } });
+  loadExample(); syncInputs(); render();
+  toast('Сохранённый план повреждён — открыл пример');
+}
 renderStore();
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };

@@ -7,9 +7,9 @@ let cells = [];
 
 function buildBars() {
   const max = 23, h = 80;
-  let html = `<div class="guide" style="bottom:${(20 / max * h + 18).toFixed(1)}px"><span>20</span></div>`;
+  let html = `<div class="guide" style="bottom:${(GOOD_WORK / max * h + 18).toFixed(1)}px"><span>${GOOD_WORK}</span></div>`;
   MONTH_INFO.forEach((M, m) => {
-    html += `<div class="bar${M.work >= 20 ? ' good' : ''}" title="${MONTHS[m]}: ${M.work} рабочих дней, ${M.hours} ч"><b>${M.work}</b><i style="height:${(M.work / max * h).toFixed(1)}px"></i><span>${MON_LETTER[m]}</span></div>`;
+    html += `<div class="bar${M.work >= GOOD_WORK ? ' good' : ''}" title="${MONTHS[m]}: ${M.work} рабочих дней, ${M.hours} ч"><b>${M.work}</b><i style="height:${(M.work / max * h).toFixed(1)}px"></i><span>${MON_LETTER[m]}</span></div>`;
   });
   $('#bars').innerHTML = html;
 }
@@ -25,7 +25,7 @@ function buildCalendar() {
   let html = '';
   for (let m = 0; m < 12; m++) {
     const M = MONTH_INFO[m];
-    html += `<article class="month${M.work >= 20 ? ' good' : ''}" data-m="${m}"><header><h3>${MONTHS[m]}</h3><span class="wd" title="Норма при 40-часовой неделе: ${M.hours} ч">${M.work} раб. ${plural(M.work, 'день', 'дня', 'дней')}</span></header>`;
+    html += `<article class="month${M.work >= GOOD_WORK ? ' good' : ''}" data-m="${m}"><header><h3>${MONTHS[m]}</h3><span class="wd" title="Норма при 40-часовой неделе: ${M.hours} ч">${M.work} раб. ${plural(M.work, 'день', 'дня', 'дней')}</span></header>`;
     html += `<div class="dow">${DOW.map((d, k) => `<span class="${k >= 5 ? 'we' : ''}">${d}</span>`).join('')}</div><div class="grid">`;
     for (let k = 0; k < DAYS[M.start].dow; k++) html += '<span></span>';
     for (let i = M.start; i < M.start + M.len; i++) {
@@ -56,7 +56,7 @@ function buildChips() {
     return `<div class="res-group"><button type="button" class="res-cat" data-cat="${c.id}" aria-pressed="false" title="Отметить или снять все направления раздела">${esc(c.name)}<span>выбрать все</span></button>${chips}</div>`;
   }).join('');
   $('#seasonChips').innerHTML = SEASONS.map(s => `<button type="button" class="chip" data-season="${s.id}" aria-pressed="false"><b>${s.name}</b><span>${monthsLabel(new Set(s.months.map(m => m - 1)))}</span></button>`).join('');
-  $('#monthChips').innerHTML = MONTH_INFO.map((M, m) => `<button type="button" class="chip mon${M.work >= 20 ? ' good' : ''}" data-month="${m + 1}" aria-pressed="false" title="${MONTHS[m]}: ${M.work} рабочих дней"><b>${MON_SH[m]}</b><span>${M.work}</span></button>`).join('');
+  $('#monthChips').innerHTML = MONTH_INFO.map((M, m) => `<button type="button" class="chip mon${M.work >= GOOD_WORK ? ' good' : ''}" data-month="${m + 1}" aria-pressed="false" title="${MONTHS[m]}: ${M.work} рабочих дней"><b>${MON_SH[m]}</b><span>${M.work}</span></button>`).join('');
 }
 
 // ---------- Рендер ----------
@@ -73,7 +73,7 @@ function render() {
   $('#undoBtn').disabled = !undo.length;
 }
 function paint(md) {
-  const sel = S.sel;
+  const sel = S.sel, specialSet = new Set((S.prefs.special || []).map(x => x.i));
   const key = i => sel[i] ? 'v' + sel[i] : md.insideHol[i] ? 'v' + md.insideHol[i] : md.rest[i] ? 'r' : '';
   for (let i = 0; i < N; i++) {
     const c = cells[i], k = sel[i], ih = md.insideHol[i];
@@ -89,6 +89,7 @@ function paint(md) {
     c.classList.toggle('el', !prev);
     c.classList.toggle('er', !next);
     c.classList.toggle('anchor', shiftHeld && lastClick === i);
+    c.classList.toggle('special', specialSet.has(i));
   }
   const spec = allowedSpec();
   monthsEl.querySelectorAll('.month').forEach(el => el.classList.toggle('pref', spec.active && spec.months.has(+el.dataset.m)));
@@ -103,7 +104,7 @@ function renderTally(md) {
   const issues = md._issues || 0;
   $('#tally').innerHTML = tallyPill('Основной', md.usedM, S.mainDays) + tallyPill('Доп.', md.usedE, S.extraDays) +
     (S.dayoffDays || md.usedD ? tallyPill('Дейоффы', md.usedD, S.dayoffDays) : '') +
-    `<span class="pill">Отдых всего ${md.restTotal} ${plural(md.restTotal, 'день', 'дня', 'дней')}</span>`;
+    `<span class="pill pill-rest">Отдых всего ${md.restTotal} ${plural(md.restTotal, 'день', 'дня', 'дней')}</span>`;
 }
 function renderChecks(md) {
   const out = [];
@@ -130,6 +131,12 @@ function renderChecks(md) {
       if (md.usedD === S.dayoffDays) add('ok', `Дейоффы: расставлены все ${S.dayoffDays}.`);
       else if (md.usedD < S.dayoffDays) add('warn', `Дейоффы: отмечено ${md.usedD} из ${S.dayoffDays}. Их ставят только вручную, кистью «Дейофф».`);
       else add('bad', `Дейоффы: отмечено ${md.usedD}, это на ${md.usedD - S.dayoffDays} больше, чем есть.`);
+    }
+    const sp = S.prefs.special || [];
+    if (sp.length) {
+      const miss = sp.filter(x => !(S.sel[x.i] || md.insideHol[x.i] || md.rest[x.i]));
+      if (!miss.length) add('ok', `Особые даты: все ${sp.length} в отдыхе.`);
+      else add('warn', `Особые даты: в отдыхе ${sp.length - miss.length} из ${sp.length}. Не вошло: ${esc(miss.map(x => dLabel(x.i) + (x.label ? ' — ' + x.label : '')).join(', '))}.`);
     }
     for (const iv of md.main.concat(md.extra)) {
       if (iv.work === 0) add('bad', `${rangeLabel(iv.s, iv.e)} (${iv.kind === 2 ? 'доп.' : 'основной'}): только выходные. Отпуск только на выходные по ТК взять нельзя, в части должен быть хотя бы один рабочий день.`);
@@ -202,10 +209,10 @@ function renderMoney(md) {
     const salaryPct = (mo.work - mo.vacWork) / mo.work * 100, vacPct = mo.paid * dp, total = salaryPct + vacPct;
     pay += vacPct; lost += mo.vacWork / mo.work * 100; paid += mo.paid; work += mo.vacWork;
     const r = v => sal ? `<small>${rub(v / 100 * sal)}</small>` : '';
-    rows.push(`<tr class="${mo.work >= 20 ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.paid} дн.<small>${mo.vacWork} ${plural(mo.vacWork, 'рабочий', 'рабочих', 'рабочих')}</small></td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
+    rows.push(`<tr class="${mo.work >= GOOD_WORK ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.paid} дн.<small>${mo.vacWork} ${plural(mo.vacWork, 'рабочий', 'рабочих', 'рабочих')}</small></td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
   }
   const week = w => 7 * dp / (5 / w * 100) * 100;
-  $('#moneyTip').innerHTML = `Неделя отпуска (7 дней, из них 5 рабочих) в месяце с <b>22 рабочими днями</b> даёт ${pct(week(22))} зарплаты за эту неделю, в январе с 15 рабочими днями — ${pct(week(15))}. Поэтому отпуск в месяцах с 20+ рабочими днями выгоднее, а выходные внутри отпуска тоже оплачиваются.`;
+  $('#moneyTip').innerHTML = `Неделя отпуска (7 дней, из них 5 рабочих) в месяце с <b>22 рабочими днями</b> даёт ${pct(week(22))} зарплаты за эту неделю, в январе с 15 рабочими днями — ${pct(week(15))}. Поэтому отпуск в месяцах с ${GOOD_WORK}+ рабочими днями выгоднее, а выходные внутри отпуска тоже оплачиваются.`;
   if (!paid) {
     $('#moneySummary').innerHTML = '<p class="hint">Отметьте дни отпуска — здесь появится расчёт.</p>';
     $('#moneyTable').innerHTML = '';

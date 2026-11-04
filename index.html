@@ -26,7 +26,7 @@
       </dl>
     </div>
     <figure class="wdchart">
-      <figcaption><span class="key-good"></span>20 и больше рабочих дней: отпуск в таком месяце выгоднее по деньгам</figcaption>
+      <figcaption><span class="key-good"></span>21 и больше рабочих дней: неделя отпуска в таком месяце окупается</figcaption>
       <div class="bars" id="bars"></div>
     </figure>
   </div>
@@ -56,7 +56,7 @@
           <div class="field">
             <label for="salary">Средний заработок, ₽ <em>— необязательно</em></label>
             <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="например, 100 000" autocomplete="off">
-            <small>В месяц, до НДФЛ. Нужен, только чтобы показать суммы в рублях</small>
+            <small>В месяц. Нужен, только чтобы показать суммы в рублях</small>
           </div>
         </div>
       </div>
@@ -79,10 +79,10 @@
       <div class="gen-head">
         <div class="gen-head-text">
           <h2>Собрать отпуск под себя</h2>
-          <p class="gen-sum" data-gensum>Ничего не выбрано: подберу с февраля по декабрь, куда поехать — по сезону.</p>
+          <p class="gen-sum" data-gensum="card">Цель — «Стандартный», больше ничего не выбрано. Цель, направления, месяцы и особые даты выбираются в «Настроить подбор». Или сразу «Собрать вариант» — подберу с февраля по декабрь.</p>
         </div>
         <div class="row">
-          <button type="button" class="btn" id="genOpen">Настроить подбор…</button>
+          <button type="button" class="btn accent" id="genOpen"><span aria-hidden="true">⚙</span> Настроить подбор…</button>
           <button type="button" class="btn primary" id="genQuick">Собрать вариант</button>
         </div>
       </div>
@@ -107,6 +107,15 @@
             <h3><label for="mainDest">Главная поездка · часть от 14 дней</label></h3>
             <div class="row"><select id="mainDest" class="dest-select"></select><span class="fine">Самую длинную часть отпуска поставлю в сезон этого направления</span></div>
           </div>
+          <div class="filter special-wrap">
+            <h3><label for="specialDate">Особые даты · постараюсь захватить отдыхом</label></h3>
+            <div class="special-row">
+              <input type="date" id="specialDate" class="text-in date-in" min="2027-01-01" max="2027-12-31">
+              <input type="text" id="specialLabel" class="text-in" maxlength="40" placeholder="Что за дата — необязательно" autocomplete="off">
+              <button type="button" class="btn" id="specialAdd">Добавить</button>
+            </div>
+            <div class="chips" id="specialChips"></div>
+          </div>
           <div class="filter">
             <h3 id="resHead">Куда</h3>
             <div class="res-groups" id="resortChips"></div>
@@ -123,7 +132,7 @@
           <option value="attach">вплотную к основному</option>
           <option value="bridge">отдельно от основного</option>
         </select>
-        <p class="gen-sum" data-gensum></p>
+        <p class="gen-sum" data-gensum="modal"></p>
         <button type="button" class="btn ghost" id="clearFilters">Сбросить выбор</button>
         <button type="button" class="btn primary" id="genBtn">Собрать вариант</button>
       </footer>
@@ -142,24 +151,26 @@
       <button type="button" class="btn ghost sm" id="clearBtn">Очистить</button>
       <div class="tally" id="tally"></div>
     </div>
-    <p class="cal-hint">Нажмите на день или протяните мышью; повторное нажатие снимает отметку. Shift + клик сразу отмечает день, следующий Shift + клик закрашивает диапазон от него (пока Shift зажат, начало диапазона обведено). Праздники в отпуск не входят и пропускаются сами. Дейофф ставится только на рабочие дни. Клавиши: 1–3 — кисти, 4 — ластик, Ctrl+Z — отменить.</p>
+    <p class="cal-hint">Нажмите на день или протяните мышью; Shift + клик — диапазон от прошлого дня. Праздники пропускаются сами, дейофф — только на рабочие дни. Клавиши: 1–3 кисти, 4 ластик, Ctrl+Z отмена.</p>
     <div class="legend">
       <span><i class="lg m">5</i>основной</span>
       <span><i class="lg e">5</i>дополнительный</span>
       <span><i class="lg m off">6</i>выходной в отпуске</span>
       <span><i class="lg d">5</i>дейофф</span>
+      <span><i class="lg sp">12</i>особая дата</span>
       <span><i class="lg h">8</i>праздник</span>
       <span><i class="lg hi">8</i>праздник внутри отпуска, продлевает его</span>
       <span><i class="lg r">6</i>выходные рядом с отпуском</span>
       <span><i class="lg t">3</i>перенесённый выходной</span>
       <span><i class="lg w">20</i>рабочая суббота</span>
       <span><i class="lg s">30</i>сокращённый день</span>
-      <span><i class="lg g">22</i>месяц с 20+ рабочими днями</span>
+      <span><i class="lg g">22</i>месяц с 21+ рабочими днями</span>
     </div>
     <div class="example" id="exampleBanner">
       <p>Это пример плана, чтобы было видно, как всё работает. Отметьте свои дни поверх, очистите календарь или соберите вариант.</p>
       <button type="button" class="btn sm" id="exampleClear">Очистить календарь</button>
     </div>
+    <p class="swipe-hint">Месяцы листаются вбок →</p>
     <div class="months" id="months"></div>
   </section>
 
@@ -177,7 +188,7 @@
       <div id="moneySummary"></div>
       <div class="table-wrap"><table id="moneyTable"></table></div>
       <p class="tip" id="moneyTip"></p>
-      <p class="fine" style="margin-top:12px">По ст. 139 ТК средний дневной заработок = заработок за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него. Праздники внутри отпуска не оплачиваются отпускными: они не входят в отпуск, а зарплата за них сохраняется. Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют. Всё до НДФЛ. Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
+      <p class="fine" style="margin-top:12px">По ст. 139 ТК средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него. Праздники внутри отпуска не оплачиваются отпускными: они не входят ни в отпуск, ни в норму рабочих дней месяца, поэтому и зарплату не уменьшают. Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют. Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
     </details>
   </section>
 
@@ -206,14 +217,14 @@
       <summary><h2>Что говорит Трудовой кодекс</h2><span class="fold-sum">основные статьи об отпуске</span></summary>
       <ul class="law">
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/7c366ded2c0c00fa6bcf8f2ca11917e7075f9cef/" target="_blank" rel="noopener">115</a></span><span>Ежегодный основной оплачиваемый отпуск — 28 календарных дней.</span></li>
-        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/adc5202dbc745c6b1bae2e9860039e581a05eb77/" target="_blank" rel="noopener">116</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/593210d78d82ade45cec8adadc140e0bdf930b99/" target="_blank" rel="noopener">119</a></span><span>Дополнительный отпуск, например за ненормированный рабочий день, — не меньше 3 календарных дней.</span></li>
+        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/adc5202dbc745c6b1bae2e9860039e581a05eb77/" target="_blank" rel="noopener">116</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/ff0b989d9cec242f2b01d05ca65a7b382f99ff10/" target="_blank" rel="noopener">117</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/593210d78d82ade45cec8adadc140e0bdf930b99/" target="_blank" rel="noopener">119</a></span><span>Дополнительный отпуск: за ненормированный рабочий день — не меньше 3 календарных дней (ст. 119), за вредные условия труда — не меньше 7 (ст. 117).</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/1ea2cd88521106bc484f44be9e24fa81034d13e5/" target="_blank" rel="noopener">120</a></span><span>Отпуск считается в календарных днях: выходные внутри него входят в отпуск, а нерабочие праздники не входят и продлевают его. Перенесённые выходные (22 февраля, 3 и 10 мая, 14 июня, 5 ноября, 31 декабря) — это выходные, а не праздники, поэтому в отпуск входят. Дополнительный отпуск суммируется с основным.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/befc35b415ff7b334824418693252b451205ffc0/" target="_blank" rel="noopener">125</a></span><span>Отпуск можно делить на части по соглашению с работодателем, но хотя бы одна часть должна быть не короче 14 календарных дней.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/56236a39da1eba84f52b37d378edbffd1710628e/" target="_blank" rel="noopener">122</a></span><span>В первый год право на отпуск появляется через 6 месяцев работы; дальше — по графику.</span></li>
-        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/627272a057d8634b0366744b16b04a6853d96fad/" target="_blank" rel="noopener">123</a></span><span>По закону график отпусков на 2027 год утверждают не позже чем за две недели до нового года, то есть до 17 декабря 2026. О начале отпуска сообщают под подпись не позже чем за 2 недели.</span></li>
+        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/627272a057d8634b0366744b16b04a6853d96fad/" target="_blank" rel="noopener">123</a></span><span>График отпусков на 2027 год утверждают не позднее чем за две недели до начала года, то есть не позднее 17 декабря 2026 включительно. Он обязателен и для работодателя, и для работника. О начале отпуска сообщают под подпись не позже чем за 2 недели.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/5096118a0d71c28f406acf6275cd6c1c36efe705/" target="_blank" rel="noopener">124</a></span><span>Если отпускные не выплатили вовремя или не предупредили за 2 недели, отпуск можно перенести по заявлению.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/8a5e832c3c2c89862b7a54ce439343796dbea548/" target="_blank" rel="noopener">126</a></span><span>Деньгами можно заменить только часть отпуска сверх 28 дней.</span></li>
-        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/a0a891ee650687026ef53d5d1194983419be6793/" target="_blank" rel="noopener">136</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/48242e0d7e3c73ff276bc1dea5aaf33de03ff34a/" target="_blank" rel="noopener">139</a></span><span>Отпускные платят не позже чем за 3 дня до начала; средний дневной заработок = доход за 12 месяцев / 12 / 29,3.</span></li>
+        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/a0a891ee650687026ef53d5d1194983419be6793/" target="_blank" rel="noopener">136</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/48242e0d7e3c73ff276bc1dea5aaf33de03ff34a/" target="_blank" rel="noopener">139</a></span><span>Отпускные платят не позже чем за 3 дня до начала; средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3.</span></li>
       </ul>
     </details>
     <details class="card fold" data-fold="holidays">

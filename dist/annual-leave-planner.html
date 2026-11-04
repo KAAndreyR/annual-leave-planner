@@ -135,6 +135,8 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
 .btn.primary{background:var(--sea);border-color:var(--sea);color:var(--sea-ink)}
 .btn.primary:hover{filter:brightness(1.07)}
 .btn.ghost{background:transparent}
+.btn.accent{border-color:var(--sea);color:var(--sea);box-shadow:inset 0 0 0 1px var(--sea)}
+.btn.accent:hover{background:var(--sea-soft)}
 .btn.sm{padding:7px 11px;font-size:13px}
 .btn:disabled{opacity:.5;cursor:default}
 
@@ -162,6 +164,34 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
 .goal[aria-checked="true"] span{color:var(--ink)}
 .filter.goals-wrap{margin-bottom:18px}
 .filter.main-dest{margin-bottom:18px}
+.filter.special-wrap{margin-bottom:18px}
+.special-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.special-row .date-in{width:auto}
+.special-row .text-in:not(.date-in){flex:1 1 200px;width:auto;min-width:0}
+.special-chip span{color:var(--muted)}
+/* Телефон: панель кистей компактнее, «Отдых всего» прячем — он есть в проверках */
+@media (max-width:600px){
+  .toolbar{gap:6px;padding-block:8px}
+  .seg button{padding-top:7px;padding-bottom:7px}
+  .seg{width:100%}
+  .seg button{flex:1 1 0;justify-content:center;padding:8px 4px;font-size:13px;gap:5px;min-width:0}
+  .toolbar .btn.sm{padding:6px 9px;font-size:12.5px}
+  .tally{margin-left:0;gap:4px}
+  .pill{font-size:12px;padding:4px 8px}
+  .pill-rest{display:none}
+  .modal-foot .gen-sum{display:none}
+  /* Низ окна в две строки: доп. отпуск с выбором, затем обе кнопки */
+  .genbar.modal-foot{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"lab sel" "clr go";gap:8px 10px;padding:10px 16px;align-items:center}
+  .modal-foot > label{grid-area:lab}
+  .modal-foot #extraMode{grid-area:sel;width:100%}
+  .modal-foot #clearFilters{grid-area:clr;padding:8px 10px;font-size:13px}
+  .modal-foot #genBtn{grid-area:go;padding:8px 10px;font-size:13px}
+  /* Особые даты: дата и кнопка в строку, подпись ниже */
+  .special-row #specialAdd{order:2}
+  .special-row #specialLabel{order:3;flex-basis:100%}
+  .modal-body{padding:14px 16px 16px}
+  .modal-head{padding:12px 12px 12px 16px}
+}
 .dest-select{border:1px solid var(--line-strong);border-radius:10px;background:var(--card);padding:8px 10px;max-width:100%;font-weight:600}
 .goals-wrap .toggle{margin-top:2px;flex-wrap:wrap;font-weight:600}
 .goals-wrap .toggle .fine{font-weight:400}
@@ -246,6 +276,7 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .lg.m{background:var(--sea);color:var(--sea-ink)}
 .lg.e{background:var(--sun);color:var(--sun-ink)}
 .lg.m.off{color:var(--off-on-sea)}
+.lg.sp{outline:2px dashed var(--ink);outline-offset:-3px}
 .lg.d{background:var(--doff);color:var(--doff-ink)}
 .lg.h{background:var(--red-soft);color:var(--red);font-weight:700}
 .lg.hi{background:repeating-linear-gradient(135deg,var(--sea-soft) 0 4px,var(--card) 4px 7px);color:var(--red)}
@@ -257,26 +288,34 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .lg.g{background:var(--ok-soft);color:var(--ok);width:auto;padding:0 6px}
 .example{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px;border:1px dashed var(--sea);border-radius:10px;margin-bottom:14px;font-size:14px}
 .example p{flex:1 1 280px}
-.months{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-@media (max-width:1180px){.months{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:860px){.months{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:540px){.months{grid-template-columns:minmax(0,1fr)}}
+.months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media (max-width:1180px){.months{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:880px){.months{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.months{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Телефон: месяцы листаются вбок, а не идут длинной лентой */
+@media (max-width:540px){
+  .months{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -16px;padding:0 16px 6px;scroll-padding-left:16px;overscroll-behavior-x:contain}
+  .month{flex:0 0 86%;scroll-snap-align:start}
+}
+.swipe-hint{display:none;font-size:12.5px;color:var(--muted);margin:0 0 8px}
+@media (max-width:540px){.swipe-hint{display:block}.toolbar{position:static}}
 /* Пока скрипты не нарисовали календарь, держим под него место — чтобы ниже ничего не съезжало */
-.months:empty{min-height:880px}
-@media (max-width:1180px){.months:empty{min-height:1195px}}
-@media (max-width:860px){.months:empty{min-height:1765px}}
-@media (max-width:540px){.months:empty{min-height:3430px}}
-.month{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 10px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.months:empty{min-height:540px}
+@media (max-width:1180px){.months:empty{min-height:760px}}
+@media (max-width:880px){.months:empty{min-height:1035px}}
+@media (max-width:640px){.months:empty{min-height:1525px}}
+@media (max-width:540px){.months:empty{min-height:280px}}
+.month{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 8px 8px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .month.pref{border-color:var(--sea);box-shadow:inset 0 0 0 1px var(--sea)}
 .month header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px}
-.month h3{font-family:var(--font-display);font-weight:500;font-size:14.5px;letter-spacing:0;text-transform:none;color:var(--ink)}
-.wd{font-size:12px;font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:99px;background:var(--hover);color:var(--muted);white-space:nowrap}
+.month h3{font-family:var(--font-display);font-weight:500;font-size:14px;letter-spacing:0;text-transform:none;color:var(--ink)}
+.wd{font-size:11px;font-variant-numeric:tabular-nums;padding:1px 7px;border-radius:99px;background:var(--hover);color:var(--muted);white-space:nowrap}
 .month.good .wd{background:var(--ok-soft);color:var(--ok);font-weight:600}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.dow span{font-size:11px;text-align:center;color:var(--muted)}
+.dow span{font-size:10.5px;text-align:center;color:var(--muted)}
 .dow .we{color:var(--red)}
-.grid{row-gap:3px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
-.day{appearance:none;-webkit-appearance:none;border:0;margin:0;background:transparent;color:var(--ink);font:500 13px/1 var(--font-body);font-variant-numeric:tabular-nums;height:32px;border-radius:8px;cursor:pointer;position:relative;padding:0;min-width:0}
+.grid{row-gap:2px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.day{appearance:none;-webkit-appearance:none;border:0;margin:0;background:transparent;color:var(--ink);font:500 12.5px/1 var(--font-body);font-variant-numeric:tabular-nums;height:28px;border-radius:8px;cursor:pointer;position:relative;padding:0;min-width:0}
 .day:hover{background:var(--hover)}
 .day.off{color:var(--red)}
 .day.ws{text-decoration:underline dotted;text-underline-offset:3px}
@@ -289,6 +328,8 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 /* Выходной внутри отпуска — красный номер, как у выходных в календаре */
 .day.off.s-m{color:var(--off-on-sea)}
 .day.off.s-e{color:var(--off-on-sun)}
+/* Особая дата — пунктирная рамка поверх любого фона */
+.day.special{outline:2px dashed var(--ink);outline-offset:-3px}
 .day.s-d{background:var(--doff);color:var(--doff-ink)}
 .day.s-h{background:repeating-linear-gradient(135deg,var(--sea-soft) 0 5px,var(--card) 5px 9px);color:var(--red)}
 .day.s-h.hk2{background:repeating-linear-gradient(135deg,var(--sun-soft) 0 5px,var(--card) 5px 9px)}
@@ -298,7 +339,7 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .day.er{border-top-right-radius:8px;border-bottom-right-radius:8px}
 .day.anchor{box-shadow:inset 0 0 0 2px var(--ink)}
 .day:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
-.msum{font-size:12px;color:var(--muted);padding:6px 2px 0;margin-top:auto;min-height:18px;font-variant-numeric:tabular-nums}
+.msum{font-size:11.5px;color:var(--muted);padding:4px 2px 0;margin-top:auto;min-height:16px;font-variant-numeric:tabular-nums}
 .msum b{color:var(--ink);font-weight:600}
 
 /* Результаты */
@@ -362,7 +403,7 @@ th:first-child,td:first-child{text-align:left}
 th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 textarea.plan-table{tab-size:14;white-space:pre;overflow-x:auto}
 td small{display:block;color:var(--muted);font-size:11.5px}
-tr.good td:first-child::after{content:"20+";margin-left:6px;font-size:10.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:1px 5px;border-radius:99px;vertical-align:1px}
+tr.good td:first-child::after{content:"21+";margin-left:6px;font-size:10.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:1px 5px;border-radius:99px;vertical-align:1px}
 .tip{font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--ok-soft)}
 .tip b{color:var(--ok)}
 
@@ -383,7 +424,7 @@ tr.good td:first-child::after{content:"20+";margin-left:6px;font-size:10.5px;fon
 .rules{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:1100px){.rules{grid-template-columns:minmax(0,1fr)}}
 .law{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.law li{display:grid;grid-template-columns:7.5rem minmax(0,1fr);gap:12px;font-size:14px;align-items:baseline}
+.law li{display:grid;grid-template-columns:9rem minmax(0,1fr);gap:12px;font-size:14px;align-items:baseline}
 .law .art{font-family:var(--font-mono);font-size:12px;color:var(--sea);font-weight:500;white-space:nowrap}
 .law .art a,.dl2 dt a,footer.foot a{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:2px}
 .law .art a:hover,.dl2 dt a:hover,footer.foot a:hover{text-decoration-color:currentColor}
@@ -414,7 +455,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       </dl>
     </div>
     <figure class="wdchart">
-      <figcaption><span class="key-good"></span>20 и больше рабочих дней: отпуск в таком месяце выгоднее по деньгам</figcaption>
+      <figcaption><span class="key-good"></span>21 и больше рабочих дней: неделя отпуска в таком месяце окупается</figcaption>
       <div class="bars" id="bars"></div>
     </figure>
   </div>
@@ -444,7 +485,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
           <div class="field">
             <label for="salary">Средний заработок, ₽ <em>— необязательно</em></label>
             <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="например, 100 000" autocomplete="off">
-            <small>В месяц, до НДФЛ. Нужен, только чтобы показать суммы в рублях</small>
+            <small>В месяц. Нужен, только чтобы показать суммы в рублях</small>
           </div>
         </div>
       </div>
@@ -467,10 +508,10 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       <div class="gen-head">
         <div class="gen-head-text">
           <h2>Собрать отпуск под себя</h2>
-          <p class="gen-sum" data-gensum>Ничего не выбрано: подберу с февраля по декабрь, куда поехать — по сезону.</p>
+          <p class="gen-sum" data-gensum="card">Цель — «Стандартный», больше ничего не выбрано. Цель, направления, месяцы и особые даты выбираются в «Настроить подбор». Или сразу «Собрать вариант» — подберу с февраля по декабрь.</p>
         </div>
         <div class="row">
-          <button type="button" class="btn" id="genOpen">Настроить подбор…</button>
+          <button type="button" class="btn accent" id="genOpen"><span aria-hidden="true">⚙</span> Настроить подбор…</button>
           <button type="button" class="btn primary" id="genQuick">Собрать вариант</button>
         </div>
       </div>
@@ -495,6 +536,15 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
             <h3><label for="mainDest">Главная поездка · часть от 14 дней</label></h3>
             <div class="row"><select id="mainDest" class="dest-select"></select><span class="fine">Самую длинную часть отпуска поставлю в сезон этого направления</span></div>
           </div>
+          <div class="filter special-wrap">
+            <h3><label for="specialDate">Особые даты · постараюсь захватить отдыхом</label></h3>
+            <div class="special-row">
+              <input type="date" id="specialDate" class="text-in date-in" min="2027-01-01" max="2027-12-31">
+              <input type="text" id="specialLabel" class="text-in" maxlength="40" placeholder="Что за дата — необязательно" autocomplete="off">
+              <button type="button" class="btn" id="specialAdd">Добавить</button>
+            </div>
+            <div class="chips" id="specialChips"></div>
+          </div>
           <div class="filter">
             <h3 id="resHead">Куда</h3>
             <div class="res-groups" id="resortChips"></div>
@@ -511,7 +561,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
           <option value="attach">вплотную к основному</option>
           <option value="bridge">отдельно от основного</option>
         </select>
-        <p class="gen-sum" data-gensum></p>
+        <p class="gen-sum" data-gensum="modal"></p>
         <button type="button" class="btn ghost" id="clearFilters">Сбросить выбор</button>
         <button type="button" class="btn primary" id="genBtn">Собрать вариант</button>
       </footer>
@@ -530,24 +580,26 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       <button type="button" class="btn ghost sm" id="clearBtn">Очистить</button>
       <div class="tally" id="tally"></div>
     </div>
-    <p class="cal-hint">Нажмите на день или протяните мышью; повторное нажатие снимает отметку. Shift + клик сразу отмечает день, следующий Shift + клик закрашивает диапазон от него (пока Shift зажат, начало диапазона обведено). Праздники в отпуск не входят и пропускаются сами. Дейофф ставится только на рабочие дни. Клавиши: 1–3 — кисти, 4 — ластик, Ctrl+Z — отменить.</p>
+    <p class="cal-hint">Нажмите на день или протяните мышью; Shift + клик — диапазон от прошлого дня. Праздники пропускаются сами, дейофф — только на рабочие дни. Клавиши: 1–3 кисти, 4 ластик, Ctrl+Z отмена.</p>
     <div class="legend">
       <span><i class="lg m">5</i>основной</span>
       <span><i class="lg e">5</i>дополнительный</span>
       <span><i class="lg m off">6</i>выходной в отпуске</span>
       <span><i class="lg d">5</i>дейофф</span>
+      <span><i class="lg sp">12</i>особая дата</span>
       <span><i class="lg h">8</i>праздник</span>
       <span><i class="lg hi">8</i>праздник внутри отпуска, продлевает его</span>
       <span><i class="lg r">6</i>выходные рядом с отпуском</span>
       <span><i class="lg t">3</i>перенесённый выходной</span>
       <span><i class="lg w">20</i>рабочая суббота</span>
       <span><i class="lg s">30</i>сокращённый день</span>
-      <span><i class="lg g">22</i>месяц с 20+ рабочими днями</span>
+      <span><i class="lg g">22</i>месяц с 21+ рабочими днями</span>
     </div>
     <div class="example" id="exampleBanner">
       <p>Это пример плана, чтобы было видно, как всё работает. Отметьте свои дни поверх, очистите календарь или соберите вариант.</p>
       <button type="button" class="btn sm" id="exampleClear">Очистить календарь</button>
     </div>
+    <p class="swipe-hint">Месяцы листаются вбок →</p>
     <div class="months" id="months"></div>
   </section>
 
@@ -565,7 +617,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       <div id="moneySummary"></div>
       <div class="table-wrap"><table id="moneyTable"></table></div>
       <p class="tip" id="moneyTip"></p>
-      <p class="fine" style="margin-top:12px">По ст. 139 ТК средний дневной заработок = заработок за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него. Праздники внутри отпуска не оплачиваются отпускными: они не входят в отпуск, а зарплата за них сохраняется. Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют. Всё до НДФЛ. Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
+      <p class="fine" style="margin-top:12px">По ст. 139 ТК средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него. Праздники внутри отпуска не оплачиваются отпускными: они не входят ни в отпуск, ни в норму рабочих дней месяца, поэтому и зарплату не уменьшают. Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют. Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
     </details>
   </section>
 
@@ -594,14 +646,14 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       <summary><h2>Что говорит Трудовой кодекс</h2><span class="fold-sum">основные статьи об отпуске</span></summary>
       <ul class="law">
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/7c366ded2c0c00fa6bcf8f2ca11917e7075f9cef/" target="_blank" rel="noopener">115</a></span><span>Ежегодный основной оплачиваемый отпуск — 28 календарных дней.</span></li>
-        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/adc5202dbc745c6b1bae2e9860039e581a05eb77/" target="_blank" rel="noopener">116</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/593210d78d82ade45cec8adadc140e0bdf930b99/" target="_blank" rel="noopener">119</a></span><span>Дополнительный отпуск, например за ненормированный рабочий день, — не меньше 3 календарных дней.</span></li>
+        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/adc5202dbc745c6b1bae2e9860039e581a05eb77/" target="_blank" rel="noopener">116</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/ff0b989d9cec242f2b01d05ca65a7b382f99ff10/" target="_blank" rel="noopener">117</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/593210d78d82ade45cec8adadc140e0bdf930b99/" target="_blank" rel="noopener">119</a></span><span>Дополнительный отпуск: за ненормированный рабочий день — не меньше 3 календарных дней (ст. 119), за вредные условия труда — не меньше 7 (ст. 117).</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/1ea2cd88521106bc484f44be9e24fa81034d13e5/" target="_blank" rel="noopener">120</a></span><span>Отпуск считается в календарных днях: выходные внутри него входят в отпуск, а нерабочие праздники не входят и продлевают его. Перенесённые выходные (22 февраля, 3 и 10 мая, 14 июня, 5 ноября, 31 декабря) — это выходные, а не праздники, поэтому в отпуск входят. Дополнительный отпуск суммируется с основным.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/befc35b415ff7b334824418693252b451205ffc0/" target="_blank" rel="noopener">125</a></span><span>Отпуск можно делить на части по соглашению с работодателем, но хотя бы одна часть должна быть не короче 14 календарных дней.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/56236a39da1eba84f52b37d378edbffd1710628e/" target="_blank" rel="noopener">122</a></span><span>В первый год право на отпуск появляется через 6 месяцев работы; дальше — по графику.</span></li>
-        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/627272a057d8634b0366744b16b04a6853d96fad/" target="_blank" rel="noopener">123</a></span><span>По закону график отпусков на 2027 год утверждают не позже чем за две недели до нового года, то есть до 17 декабря 2026. О начале отпуска сообщают под подпись не позже чем за 2 недели.</span></li>
+        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/627272a057d8634b0366744b16b04a6853d96fad/" target="_blank" rel="noopener">123</a></span><span>График отпусков на 2027 год утверждают не позднее чем за две недели до начала года, то есть не позднее 17 декабря 2026 включительно. Он обязателен и для работодателя, и для работника. О начале отпуска сообщают под подпись не позже чем за 2 недели.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/5096118a0d71c28f406acf6275cd6c1c36efe705/" target="_blank" rel="noopener">124</a></span><span>Если отпускные не выплатили вовремя или не предупредили за 2 недели, отпуск можно перенести по заявлению.</span></li>
         <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/8a5e832c3c2c89862b7a54ce439343796dbea548/" target="_blank" rel="noopener">126</a></span><span>Деньгами можно заменить только часть отпуска сверх 28 дней.</span></li>
-        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/a0a891ee650687026ef53d5d1194983419be6793/" target="_blank" rel="noopener">136</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/48242e0d7e3c73ff276bc1dea5aaf33de03ff34a/" target="_blank" rel="noopener">139</a></span><span>Отпускные платят не позже чем за 3 дня до начала; средний дневной заработок = доход за 12 месяцев / 12 / 29,3.</span></li>
+        <li><span class="art">ст. <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/a0a891ee650687026ef53d5d1194983419be6793/" target="_blank" rel="noopener">136</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_34683/48242e0d7e3c73ff276bc1dea5aaf33de03ff34a/" target="_blank" rel="noopener">139</a></span><span>Отпускные платят не позже чем за 3 дня до начала; средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3.</span></li>
       </ul>
     </details>
     <details class="card fold" data-fold="holidays">
@@ -686,6 +738,8 @@ const OFF_RUNS = [];
 for (let i = 0; i < N; i++) { if (!DAYS[i].off) continue; let j = i; while (j + 1 < N && DAYS[j + 1].off) j++; OFF_RUNS.push({ a: i, b: j, len: j - i + 1 }); i = j; }
 // Первый рабочий день после январских каникул (11 января)
 const JAN_START = OFF_RUNS[0].b + 1;
+// Неделя отпуска (7 дней, 5 рабочих) окупается, когда в месяце от 21 рабочего дня: 7/29,3 ≥ 5/N
+const GOOD_WORK = 21;
 </script>
 <script>
 // Направления и сезоны, «Дома хорошо», цели подбора.
@@ -755,15 +809,17 @@ RESORTS.forEach(r => {
   if (r.win) { r.winIdx = []; for (let i = dayIdx(r.win[0][1], r.win[0][0]); i <= dayIdx(r.win[1][1], r.win[1][0]); i++) if (!DAYS[i].hol) r.winIdx.push(i); }
 });
 const TRAVEL = RESORTS.filter(r => r.cat !== 'home');
-const RES_BY_ID = Object.fromEntries(RESORTS.map(r => [r.id, r]));
+// Словари без прототипа: id вроде «constructor» из чужого файла не должны находить Object.prototype
+const dict = obj => Object.assign(Object.create(null), obj);
+const RES_BY_ID = dict(Object.fromEntries(RESORTS.map(r => [r.id, r])));
 // Старые id из сохранённых планов
-const RES_ALIAS = { antalya:'turkey', hurghada:'egypt', dubai:'uae', phuket:'thai', nhatrang:'vietnam', sochi:'rusea', crimea:'rusea',
-  kaliningrad:'rucity', spb:'rucity', kazan:'rucity', altai:'rusnature', baikal:'rusnature', karelia:'rusnature', teriberka:'aurora', srilanka:'surf' };
-const resolveRes = id => RES_BY_ID[id] ? id : (RES_ALIAS[id] && RES_BY_ID[RES_ALIAS[id]] ? RES_ALIAS[id] : null);
+const RES_ALIAS = dict({ antalya:'turkey', hurghada:'egypt', dubai:'uae', phuket:'thai', nhatrang:'vietnam', sochi:'rusea', crimea:'rusea',
+  kaliningrad:'rucity', spb:'rucity', kazan:'rucity', altai:'rusnature', baikal:'rusnature', karelia:'rusnature', teriberka:'aurora', srilanka:'surf' });
+const resolveRes = id => typeof id !== 'string' ? null : RES_BY_ID[id] ? id : (RES_ALIAS[id] && RES_BY_ID[RES_ALIAS[id]] ? RES_ALIAS[id] : null);
 const GOALS = [
   { id:'rest', name:'Максимальный отдых', desc:'Цепляю отпуск к праздникам и выходным, чтобы отдыхать подряд дольше. Майские в ходу, хотя по деньгам май в минусе.' },
-  { id:'standard', name:'Стандартный', desc:'Баланс отдыха и денег: часть на 2–3 недели, остальное неделями, выходные по краям.' },
-  { id:'money', name:'Максимальная выгода', desc:'Только месяцы с 20+ рабочими днями, части с субботы по воскресенье: выходные внутри оплачиваются, а зарплата за них не теряется.' }
+  { id:'standard', name:'Стандартный', desc:'Баланс отдыха и денег: одна часть на две недели, остальное неделями, выходные по краям.' },
+  { id:'money', name:'Максимальная выгода', desc:'Только месяцы с 21+ рабочими днями, части с субботы по воскресенье: больше выходных оплачивается отпускными. Цена — отдыха меньше: дни отпуска уходят на выходные, которые и так свободны.' }
 ];
 const GOAL_IDS = GOALS.map(g => g.id);
 const SEASONS = [
@@ -772,7 +828,7 @@ const SEASONS = [
   { id:'summer', name:'Лето', months:[6,7,8] },
   { id:'autumn', name:'Осень', months:[9,10,11] }
 ];
-const SEASON_BY_ID = Object.fromEntries(SEASONS.map(s => [s.id, s]));
+const SEASON_BY_ID = dict(Object.fromEntries(SEASONS.map(s => [s.id, s])));
 </script>
 <script>
 // Форматирование чисел и дат, мелкие помощники.
@@ -818,7 +874,7 @@ const resortWhere = r => r.where && r.where !== 'Россия' ? r.where : (r.wh
 const S = {
   mainDays: 28, extraDays: 3, dayoffDays: 0, salary: '',
   sel: new Uint8Array(N), notes: {},
-  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '' },
+  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] },
   variants: [], example: false, updatedAt: 0
 };
 let brush = 1, lastClick = null, shiftHeld = false;
@@ -869,16 +925,23 @@ function applyData(d, opts = {}) {
   const p = d.prefs || {};
   S.prefs = {
     resorts: [...new Set((Array.isArray(p.resorts) ? p.resorts : []).map(resolveRes).filter(Boolean))],
-    seasons: (Array.isArray(p.seasons) ? p.seasons : []).filter(id => SEASON_BY_ID[id]),
-    months: (Array.isArray(p.months) ? p.months : []).map(Number).filter(m => m >= 1 && m <= 12),
+    seasons: [...new Set((Array.isArray(p.seasons) ? p.seasons : []).filter(id => typeof id === 'string' && SEASON_BY_ID[id]))],
+    months: [...new Set((Array.isArray(p.months) ? p.months : []).map(Number).filter(m => Number.isInteger(m) && m >= 1 && m <= 12))],
     extraMode: ['auto','attach','bridge'].includes(p.extraMode) ? p.extraMode : 'auto',
     goal: GOAL_IDS.includes(p.goal) ? p.goal : 'standard',
     janExtend: p.janExtend === true,
-    mainDest: resolveRes(p.mainDest) && !RES_BY_ID[resolveRes(p.mainDest)].winIdx ? resolveRes(p.mainDest) : ''
+    mainDest: resolveRes(p.mainDest) && !RES_BY_ID[resolveRes(p.mainDest)].winIdx ? resolveRes(p.mainDest) : '',
+    special: (Array.isArray(p.special) ? p.special : [])
+      .map(x => ({ i: Number(x && x.i), label: String((x && x.label) || '').slice(0, 40) }))
+      .filter((x, k, a) => Number.isInteger(x.i) && x.i >= 0 && x.i < N && a.findIndex(y => y.i === x.i) === k)
+      .sort((a, b) => a.i - b.i).slice(0, 20)
   };
   if (Array.isArray(d.variants) && !opts.keepVariants) {
-    S.variants = d.variants.filter(v => v && typeof v.runs === 'string').slice(0, 20)
+    const incoming = d.variants.filter(v => v && typeof v.runs === 'string').slice(0, 20)
       .map(v => ({ id: String(v.id || Math.random().toString(36).slice(2)), name: String(v.name || 'Вариант'), runs: v.runs, notes: cleanNotes(v.notes), created: +v.created || 0 }));
+    // При загрузке файла варианты добавляются к своим, а не заменяют их
+    if (opts.mergeVariants) { const ids = new Set(S.variants.map(v => v.id)); S.variants = S.variants.concat(incoming.filter(v => !ids.has(v.id))).slice(0, 20); }
+    else S.variants = incoming;
   }
   S.example = !!d.example;
   S.updatedAt = +d.updatedAt || 0;
@@ -953,9 +1016,9 @@ let cells = [];
 
 function buildBars() {
   const max = 23, h = 80;
-  let html = `<div class="guide" style="bottom:${(20 / max * h + 18).toFixed(1)}px"><span>20</span></div>`;
+  let html = `<div class="guide" style="bottom:${(GOOD_WORK / max * h + 18).toFixed(1)}px"><span>${GOOD_WORK}</span></div>`;
   MONTH_INFO.forEach((M, m) => {
-    html += `<div class="bar${M.work >= 20 ? ' good' : ''}" title="${MONTHS[m]}: ${M.work} рабочих дней, ${M.hours} ч"><b>${M.work}</b><i style="height:${(M.work / max * h).toFixed(1)}px"></i><span>${MON_LETTER[m]}</span></div>`;
+    html += `<div class="bar${M.work >= GOOD_WORK ? ' good' : ''}" title="${MONTHS[m]}: ${M.work} рабочих дней, ${M.hours} ч"><b>${M.work}</b><i style="height:${(M.work / max * h).toFixed(1)}px"></i><span>${MON_LETTER[m]}</span></div>`;
   });
   $('#bars').innerHTML = html;
 }
@@ -971,7 +1034,7 @@ function buildCalendar() {
   let html = '';
   for (let m = 0; m < 12; m++) {
     const M = MONTH_INFO[m];
-    html += `<article class="month${M.work >= 20 ? ' good' : ''}" data-m="${m}"><header><h3>${MONTHS[m]}</h3><span class="wd" title="Норма при 40-часовой неделе: ${M.hours} ч">${M.work} раб. ${plural(M.work, 'день', 'дня', 'дней')}</span></header>`;
+    html += `<article class="month${M.work >= GOOD_WORK ? ' good' : ''}" data-m="${m}"><header><h3>${MONTHS[m]}</h3><span class="wd" title="Норма при 40-часовой неделе: ${M.hours} ч">${M.work} раб. ${plural(M.work, 'день', 'дня', 'дней')}</span></header>`;
     html += `<div class="dow">${DOW.map((d, k) => `<span class="${k >= 5 ? 'we' : ''}">${d}</span>`).join('')}</div><div class="grid">`;
     for (let k = 0; k < DAYS[M.start].dow; k++) html += '<span></span>';
     for (let i = M.start; i < M.start + M.len; i++) {
@@ -1002,7 +1065,7 @@ function buildChips() {
     return `<div class="res-group"><button type="button" class="res-cat" data-cat="${c.id}" aria-pressed="false" title="Отметить или снять все направления раздела">${esc(c.name)}<span>выбрать все</span></button>${chips}</div>`;
   }).join('');
   $('#seasonChips').innerHTML = SEASONS.map(s => `<button type="button" class="chip" data-season="${s.id}" aria-pressed="false"><b>${s.name}</b><span>${monthsLabel(new Set(s.months.map(m => m - 1)))}</span></button>`).join('');
-  $('#monthChips').innerHTML = MONTH_INFO.map((M, m) => `<button type="button" class="chip mon${M.work >= 20 ? ' good' : ''}" data-month="${m + 1}" aria-pressed="false" title="${MONTHS[m]}: ${M.work} рабочих дней"><b>${MON_SH[m]}</b><span>${M.work}</span></button>`).join('');
+  $('#monthChips').innerHTML = MONTH_INFO.map((M, m) => `<button type="button" class="chip mon${M.work >= GOOD_WORK ? ' good' : ''}" data-month="${m + 1}" aria-pressed="false" title="${MONTHS[m]}: ${M.work} рабочих дней"><b>${MON_SH[m]}</b><span>${M.work}</span></button>`).join('');
 }
 
 // ---------- Рендер ----------
@@ -1019,7 +1082,7 @@ function render() {
   $('#undoBtn').disabled = !undo.length;
 }
 function paint(md) {
-  const sel = S.sel;
+  const sel = S.sel, specialSet = new Set((S.prefs.special || []).map(x => x.i));
   const key = i => sel[i] ? 'v' + sel[i] : md.insideHol[i] ? 'v' + md.insideHol[i] : md.rest[i] ? 'r' : '';
   for (let i = 0; i < N; i++) {
     const c = cells[i], k = sel[i], ih = md.insideHol[i];
@@ -1035,6 +1098,7 @@ function paint(md) {
     c.classList.toggle('el', !prev);
     c.classList.toggle('er', !next);
     c.classList.toggle('anchor', shiftHeld && lastClick === i);
+    c.classList.toggle('special', specialSet.has(i));
   }
   const spec = allowedSpec();
   monthsEl.querySelectorAll('.month').forEach(el => el.classList.toggle('pref', spec.active && spec.months.has(+el.dataset.m)));
@@ -1049,7 +1113,7 @@ function renderTally(md) {
   const issues = md._issues || 0;
   $('#tally').innerHTML = tallyPill('Основной', md.usedM, S.mainDays) + tallyPill('Доп.', md.usedE, S.extraDays) +
     (S.dayoffDays || md.usedD ? tallyPill('Дейоффы', md.usedD, S.dayoffDays) : '') +
-    `<span class="pill">Отдых всего ${md.restTotal} ${plural(md.restTotal, 'день', 'дня', 'дней')}</span>`;
+    `<span class="pill pill-rest">Отдых всего ${md.restTotal} ${plural(md.restTotal, 'день', 'дня', 'дней')}</span>`;
 }
 function renderChecks(md) {
   const out = [];
@@ -1076,6 +1140,12 @@ function renderChecks(md) {
       if (md.usedD === S.dayoffDays) add('ok', `Дейоффы: расставлены все ${S.dayoffDays}.`);
       else if (md.usedD < S.dayoffDays) add('warn', `Дейоффы: отмечено ${md.usedD} из ${S.dayoffDays}. Их ставят только вручную, кистью «Дейофф».`);
       else add('bad', `Дейоффы: отмечено ${md.usedD}, это на ${md.usedD - S.dayoffDays} больше, чем есть.`);
+    }
+    const sp = S.prefs.special || [];
+    if (sp.length) {
+      const miss = sp.filter(x => !(S.sel[x.i] || md.insideHol[x.i] || md.rest[x.i]));
+      if (!miss.length) add('ok', `Особые даты: все ${sp.length} в отдыхе.`);
+      else add('warn', `Особые даты: в отдыхе ${sp.length - miss.length} из ${sp.length}. Не вошло: ${esc(miss.map(x => dLabel(x.i) + (x.label ? ' — ' + x.label : '')).join(', '))}.`);
     }
     for (const iv of md.main.concat(md.extra)) {
       if (iv.work === 0) add('bad', `${rangeLabel(iv.s, iv.e)} (${iv.kind === 2 ? 'доп.' : 'основной'}): только выходные. Отпуск только на выходные по ТК взять нельзя, в части должен быть хотя бы один рабочий день.`);
@@ -1148,10 +1218,10 @@ function renderMoney(md) {
     const salaryPct = (mo.work - mo.vacWork) / mo.work * 100, vacPct = mo.paid * dp, total = salaryPct + vacPct;
     pay += vacPct; lost += mo.vacWork / mo.work * 100; paid += mo.paid; work += mo.vacWork;
     const r = v => sal ? `<small>${rub(v / 100 * sal)}</small>` : '';
-    rows.push(`<tr class="${mo.work >= 20 ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.paid} дн.<small>${mo.vacWork} ${plural(mo.vacWork, 'рабочий', 'рабочих', 'рабочих')}</small></td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
+    rows.push(`<tr class="${mo.work >= GOOD_WORK ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.paid} дн.<small>${mo.vacWork} ${plural(mo.vacWork, 'рабочий', 'рабочих', 'рабочих')}</small></td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
   }
   const week = w => 7 * dp / (5 / w * 100) * 100;
-  $('#moneyTip').innerHTML = `Неделя отпуска (7 дней, из них 5 рабочих) в месяце с <b>22 рабочими днями</b> даёт ${pct(week(22))} зарплаты за эту неделю, в январе с 15 рабочими днями — ${pct(week(15))}. Поэтому отпуск в месяцах с 20+ рабочими днями выгоднее, а выходные внутри отпуска тоже оплачиваются.`;
+  $('#moneyTip').innerHTML = `Неделя отпуска (7 дней, из них 5 рабочих) в месяце с <b>22 рабочими днями</b> даёт ${pct(week(22))} зарплаты за эту неделю, в январе с 15 рабочими днями — ${pct(week(15))}. Поэтому отпуск в месяцах с ${GOOD_WORK}+ рабочими днями выгоднее, а выходные внутри отпуска тоже оплачиваются.`;
   if (!paid) {
     $('#moneySummary').innerHTML = '<p class="hint">Отметьте дни отпуска — здесь появится расчёт.</p>';
     $('#moneyTable').innerHTML = '';
@@ -1210,7 +1280,11 @@ function renderExport(md) {
 const LS_KEY = 'vacation-2027-v1', LS_KEY_OLD = 'otpusk-2027-v1';
 let localOk = null;
 function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(serialize())); return true; } catch (e) { return false; } }
-function loadLocal() { try { const t = localStorage.getItem(LS_KEY) || localStorage.getItem(LS_KEY_OLD); return t ? JSON.parse(t) : null; } catch (e) { return null; } }
+function loadLocal() {
+  // Если новая запись повреждена, пробуем старую
+  for (const key of [LS_KEY, LS_KEY_OLD]) { try { const t = localStorage.getItem(key); if (t) return JSON.parse(t); } catch (e) {} }
+  return null;
+}
 function touched() { S.updatedAt = Date.now(); localOk = saveLocal(); renderStore(); }
 function renderStore() {
   const el = $('#storeStatus');
@@ -1238,9 +1312,10 @@ function findResort(text) {
   const t = text.toLowerCase().replace(/ё/g, 'е').trim(); if (!t) return null;
   const nm = r => r.name.toLowerCase().replace(/ё/g, 'е');
   const words = t.split(/[^a-zа-я-]+/).filter(w => w.length >= 4);
+  const words3 = t.split(/[^a-zа-я-]+/).filter(w => w.length >= 3); // страны вроде «ОАЭ»
   const wide = r => (r.name + ' ' + r.where + ' ' + (r.note || '')).toLowerCase().replace(/ё/g, 'е');
   return RESORTS.find(r => nm(r) === t) || RESORTS.find(r => nm(r).includes(t) || t.includes(nm(r))) ||
-    RESORTS.find(r => words.some(w => nm(r).includes(w))) || RESORTS.find(r => words.some(w => wide(r).includes(w))) || null;
+    RESORTS.find(r => words.some(w => nm(r).includes(w))) || RESORTS.find(r => words3.some(w => wide(r).includes(w))) || null;
 }
 function parsePlan(text) {
   text = String(text || '').trim();
@@ -1279,8 +1354,10 @@ function applyImport(text, source) {
   if (res.error) { toast(res.error); return; }
   const before = snapshot();
   if (res.data) {
-    if (!applyData(res.data, { keepVariants: false })) { toast('Это план не на 2027 год или файл не тот.'); return; }
-    syncInputs(); commit(before, true); toast('План загружен' + (source ? ' из файла' : ''));
+    const full = serialize();
+    if (!applyData(res.data, { mergeVariants: true })) { toast('Это план не на 2027 год или файл не тот.'); return; }
+    before.full = full;
+    syncInputs(); commit(before, true); toast('План загружен' + (source ? ' из файла' : '') + '. «Отменить» вернёт прежний.');
     return;
   }
   S.sel = res.sel; S.notes = res.notes;
@@ -1303,7 +1380,9 @@ function commit(before, keepExample) {
 function doUndo() {
   const u = undo.pop();
   if (!u) { toast('Отменять нечего'); return; }
-  S.sel = u.sel; S.notes = u.notes; S.example = false;
+  if (u.full) { applyData(u.full, { keepVariants: false }); syncInputs(); }
+  else { S.sel = u.sel; S.notes = u.notes; }
+  S.example = false;
   touched(); render();
 }
 function actionFor(i) { if (brush === 0) return 0; return S.sel[i] === brush ? 0 : brush; }
@@ -1392,7 +1471,7 @@ function allowedSpec() {
   // Ничего не отмечено — месяцы под цель. Январь сюда не входит никогда: он самый невыгодный (15 рабочих дней)
   const autoFor = g => {
     const all = [1,2,3,4,5,6,7,8,9,10,11];
-    if (g === 'money') { const ms = new Set(all.filter(m => MONTH_INFO[m].work >= 20)); return { ms, t: 'только месяцы с 20+ рабочими днями: ' + monthsLabel(ms) }; }
+    if (g === 'money') { const ms = new Set(all.filter(m => MONTH_INFO[m].work >= GOOD_WORK)); return { ms, t: `только месяцы с ${GOOD_WORK}+ рабочими днями: ` + monthsLabel(ms) }; }
     return { ms: new Set(all), t: g === 'rest' ? 'с февраля по декабрь, с упором на праздники' : 'с февраля по декабрь' };
   };
   let auto = '';
@@ -1402,7 +1481,7 @@ function allowedSpec() {
   const janAll = janExtend && months.has(0);
   if (!janAll && months.has(0)) {
     months = new Set([...months].filter(m => m !== 0));
-    if (P.months.includes(1)) note = (note ? note + ' ' : '') + 'Январь пропускаю: включите «Хочу продлить январские».';
+    note = (note ? note + ' ' : '') + 'Январь пропускаю: в нём всего 15 рабочих дней. Чтобы взять его, включите «Хочу продлить январские».';
     if (!months.size) { const a = autoFor(P.goal); months = a.ms; auto = a.t; }
   }
   // Главная поездка: часть от 14 дней ставим в её сезон (январь — только с галкой)
@@ -1412,12 +1491,18 @@ function allowedSpec() {
     const dm = new Set(dest.months.map(m => m - 1).filter(m => m !== 0 || janExtend));
     if (dm.size) destSpec = Object.assign({}, { months: dm, janAll: janExtend && dm.has(0) });
   }
-  return { months, pool, chosen, byMonth, wins, note, auto, janExtend, janAll, dest, destSpec, active: M.size > 0 || R.size > 0 };
+  const special = (P.special || []).map(x => x.i);
+  return { months, pool, chosen, byMonth, wins, note, auto, janExtend, janAll, dest, destSpec, special, active: M.size > 0 || R.size > 0 };
 }
 // Можно ли занимать эти дни: январь — только когда он разрешён
 const janOK = (idx, spec) => spec.janAll || idx.every(i => DAYS[i].m !== 0);
 // Дейоффы ставят только вручную; подбор их сохраняет и отпуск на них не кладёт
 const onDoff = (idx, spec) => !!spec.doff && idx.some(i => spec.doff[i]);
+// Особые даты: часть, которая их захватывает, можно ставить и в январь, и вне выбранных месяцев
+const coversSpecial = (idx, spec) => !!spec.special && spec.special.some(d => d >= idx[0] && d <= idx[idx.length - 1]);
+const SPECIAL_W = 40;
+// len дней подряд от s без праздников и дейоффов: дейоффы остаются дейоффами и не рвут отдых
+function takeFwdAround(s, len, spec) { const idx = []; for (let i = s; i < N && idx.length < len; i++) if (!DAYS[i].hol && !(spec.doff && spec.doff[i])) idx.push(i); return idx.length === len ? idx : null; }
 // Вес месяца для старта части: чем больше рабочих дней, тем выгоднее
 function monthWeight(m, goal) {
   const w = MONTH_INFO[m].work - 14;
@@ -1441,6 +1526,7 @@ function splitMain(L, mc, goal) {
   else if (goal === 'rest') { first = 14; pieces = [5, 5, 4, 7]; }
   else { first = 14; pieces = [7, 7, 7, 5, 9]; }
   first = Math.min(first, L);
+  if (L - first > 0 && L - first < 3) first = L; // не оставляем хвост в 1–2 дня
   const parts = [first]; let rest = L - first;
   while (rest > 0) {
     if (parts.length >= maxParts) { parts[parts.length - 1] += rest; break; }
@@ -1453,6 +1539,12 @@ function splitMain(L, mc, goal) {
   return parts;
 }
 function randomStart(spec, len, goal) {
+  // Особые даты: часто ставим часть так, чтобы она их захватила
+  if (spec.special && spec.special.length && Math.random() < 0.5) {
+    let i = Math.max(0, rnd(spec.special) - Math.floor(Math.random() * len));
+    while (i < N - 1 && DAYS[i].hol) i++;
+    return i;
+  }
   // «Максимальный отдых»: чаще всего встаём вплотную к длинным выходным и праздникам
   if (goal === 'rest' && Math.random() < 0.6) {
     const runs = OFF_RUNS.filter(r => r.len >= 3 && (spec.months.has(DAYS[r.a].m) || spec.months.has(DAYS[r.b].m)));
@@ -1487,7 +1579,7 @@ function blockGain(idx) {
 }
 // Веса цели: [отдых, деньги, случайность]
 const GOAL_W = { rest: [1, 0.05, 2], standard: [1, 1, 3], money: [0.1, 1, 0.8] };
-function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + Math.random() * w[2] * noise; }
+function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + (ev.special || 0) * SPECIAL_W + Math.random() * w[2] * noise; }
 // Равномерность: насколько части разнесены по году (1 — идеально поровну, 0 — вплотную)
 const EVEN_W = { rest: 4, standard: 14, money: 6 };
 function evenness(placed) {
@@ -1497,15 +1589,19 @@ function evenness(placed) {
   gaps.push(N - starts[starts.length - 1] + starts[0]);
   return Math.min(1, Math.min(...gaps) / (N / starts.length));
 }
-function bridgeExtra(sel, spec, E, minFrac, goal) {
+// Доп. отпуск — последним: после последней части основного и ближе к концу года
+const LATE_W = 12;
+function bridgeExtra(sel, spec, E, minFrac, goal, lastMain) {
   const cands = [];
   for (let s = 0; s < N; s++) {
     if (DAYS[s].off) continue;
     const idx = takeFwd(s, E); if (!idx) continue;
-    if (fracIn(idx, spec.months) < minFrac) continue;
+    const sp = coversSpecial(idx, spec);
+    if (!sp && fracIn(idx, spec.months) < minFrac) continue;
     if (!isFree(sel, idx[0] - 7, idx[idx.length - 1] + 7)) continue;
-    if (!idx.some(i => DAYS[i].work) || !janOK(idx, spec) || onDoff(idx, spec)) continue;
-    cands.push({ idx, score: goalScore(blockGain(idx), goal, 0.5) });
+    if (!idx.some(i => DAYS[i].work) || (!janOK(idx, spec) && !sp) || onDoff(idx, spec)) continue;
+    const late = (idx[0] > lastMain ? LATE_W : 0) + idx[0] / N * 6;
+    cands.push({ idx, score: goalScore(blockGain(idx), goal, 0.5) + (sp ? SPECIAL_W : 0) + late });
   }
   if (!cands.length) return null;
   cands.sort((x, y) => y.score - x.score);
@@ -1515,27 +1611,30 @@ function placeExtra(sel, spec, E, minFrac, placed, goal) {
   let mode = S.prefs.extraMode;
   // Отдельно чаще: вплотную к двум неделям доп. отпуск даёт почти три недели подряд
   if (mode === 'auto') mode = Math.random() < 0.2 ? 'attach' : 'bridge';
+  const mains = placed.filter(p => p.kind === 1);
+  const lastMain = mains.length ? Math.max(...mains.map(p => p.idx[p.idx.length - 1])) : -1;
   if (mode === 'bridge' || !placed.length) {
-    const b = bridgeExtra(sel, spec, E, minFrac, goal);
+    const b = bridgeExtra(sel, spec, E, minFrac, goal, lastMain);
     if (b) return { idx: b, separate: true };
     if (!placed.length) return null;
   }
-  for (const p of shuffle(placed.slice())) {
-    for (const dir of shuffle([1, -1])) {
+  // Вплотную — к последней части основного, сначала после неё
+  for (const p of mains.slice().sort((a, b) => b.idx[0] - a.idx[0])) {
+    for (const dir of [1, -1]) {
       const idx = dir > 0 ? takeFwd(p.idx[p.idx.length - 1] + 1, E) : takeBack(p.idx[0] - 1, E);
-      if (idx && idx.every(i => !sel[i]) && idx.some(i => DAYS[i].work) && (p.jan || janOK(idx, spec)) && !onDoff(idx, spec)) return { idx, separate: false };
+      if (idx && idx.every(i => !sel[i]) && idx.some(i => DAYS[i].work) && (p.jan || janOK(idx, spec) || coversSpecial(idx, spec)) && !onDoff(idx, spec)) return { idx, separate: false };
     }
   }
   return null;
 }
 // Весь план: дней отдыха подряд с выходными и праздниками + разница отпускных и потерянной зарплаты
-function evalSel(sel) {
+function evalSel(sel, special) {
   const chains = buildIntervals(sel, v => v > 0, 0);
   const mark = new Uint8Array(N); let rest = 0;
   for (const c of chains) for (let k = c.ra; k <= c.rb; k++) if (!mark[k]) { mark[k] = 1; rest++; }
   const dp = dayPct(); let pay = 0, lost = 0;
   for (let i = 0; i < N; i++) if (sel[i]) { pay += dp; if (DAYS[i].work) lost += 100 / MONTH_INFO[DAYS[i].m].work; }
-  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null };
+  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null, special: special ? special.filter(d => mark[d]).length : 0 };
 }
 function assignResorts(placed, spec) {
   const notes = {}, used = new Set();
@@ -1558,14 +1657,15 @@ function assignResorts(placed, spec) {
 }
 // Части на точные даты событий. Берём их из основного отпуска, пока остаётся место для части от 14 дней.
 function presetWins(spec, L) {
-  const blocks = [], skipped = []; let left = L;
+  const blocks = [], skipped = [], skippedDoff = []; let left = L;
   for (const r of spec.wins) {
     const len = r.winIdx.length, after = left - len;
     const has14 = len >= 14 || blocks.some(b => b.idx.length >= 14);
-    if (after < 0 || (!has14 && after < 14) || onDoff(r.winIdx, spec)) { skipped.push(r.name); continue; }
+    if (onDoff(r.winIdx, spec)) { skippedDoff.push(r.name); continue; }
+    if (after < 0 || (!has14 && after < 14)) { skipped.push(r.name); continue; }
     blocks.push({ idx: r.winIdx, id: r.id }); left = after;
   }
-  return { blocks, left, skipped };
+  return { blocks, left, skipped, skippedDoff };
 }
 function tryPlan(spec, L, E, minFrac, goal, pre) {
   const sel = new Uint8Array(N), placed = [];
@@ -1581,18 +1681,16 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
   let gap = multi ? (spec.months.size >= 4 ? 28 : spec.months.size >= 2 ? 10 : 2) : 1;
   if (placed.length) gap = Math.min(gap, 10);
   // «Хочу продлить январские»: одна часть начинается сразу после каникул — доп. отпуск или самая короткая часть основного
-  let extraDone = false;
+  let extraDone = false, janMiss = false;
   if (spec.janExtend) {
     if (E > 0 && S.prefs.extraMode !== 'attach') {
-      const idx = takeFwd(JAN_START, E);
-      if (onDoff(idx, spec)) return null;
-      idx.forEach(i => sel[i] = 2); placed.push({ idx, kind: 2, separate: true, jan: true }); extraDone = true;
+      const idx = takeFwdAround(JAN_START, E, spec);
+      if (idx) { idx.forEach(i => sel[i] = 2); placed.push({ idx, kind: 2, separate: true, jan: true }); extraDone = true; }
     } else if (parts.length) {
       let k = 0; parts.forEach((p, j) => { if (p < parts[k]) k = j; });
-      const idx = takeFwd(JAN_START, parts.splice(k, 1)[0]);
-      if (onDoff(idx, spec)) return null;
-      idx.forEach(i => sel[i] = 1); placed.push({ idx, kind: 1, jan: true });
-    }
+      const idx = takeFwdAround(JAN_START, parts.splice(k, 1)[0], spec);
+      if (idx) { idx.forEach(i => sel[i] = 1); placed.push({ idx, kind: 1, jan: true }); }
+    } else janMiss = true; // весь основной отпуск ушёл на главную поездку
   }
   // Для каждой части пробуем несколько стартов и берём лучший под цель
   const K = goal === 'standard' ? 2 : 8;
@@ -1603,11 +1701,13 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
     for (let a = 0; a < 80 && seen < K; a++) {
       const s = randomStart(sp, len, goal); if (s == null) break;
       const idx = takeFwd(s, len); if (!idx) continue;
-      if (!idx.some(i => DAYS[i].work) || !janOK(idx, sp) || onDoff(idx, spec)) continue;
-      if (fracIn(idx, sp.months) < (job.dest ? Math.max(minFrac, 0.5) : minFrac)) continue;
+      if (!idx.some(i => DAYS[i].work) || onDoff(idx, spec)) continue;
+      const special = !job.dest && coversSpecial(idx, spec);
+      if (!janOK(idx, sp) && !special) continue;
+      if (!special && fracIn(idx, sp.months) < (job.dest ? Math.max(minFrac, 0.5) : minFrac)) continue;
       if (!isFree(sel, idx[0] - gap, idx[idx.length - 1] + gap)) continue;
       seen++;
-      const sc = goalScore(blockGain(idx), goal, 0.5);
+      const sc = goalScore(blockGain(idx), goal, 0.5) + (special ? SPECIAL_W : 0);
       if (sc > best) { best = sc; got = idx; }
     }
     if (!got) return null;
@@ -1618,9 +1718,9 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
     if (!ex) return null;
     ex.idx.forEach(i => sel[i] = 2); placed.push({ idx: ex.idx, kind: 2, separate: ex.separate });
   }
-  const ev = evalSel(sel);
+  const ev = evalSel(sel, spec.special);
   ev.even = evenness(placed);
-  return { sel, notes: assignResorts(placed, spec), ev, score: goalScore(ev, goal) };
+  return { sel, notes: assignResorts(placed, spec), ev, score: goalScore(ev, goal), janMiss };
 }
 function generate() {
   const spec = allowedSpec(), L = S.mainDays, E = S.extraDays, goal = S.prefs.goal;
@@ -1648,6 +1748,14 @@ function generate() {
   html += '.';
   if (spec.note) html += ' ' + esc(spec.note);
   if (pre.skipped.length) html += ' Не поместилось: ' + esc(pre.skipped.join(', ')) + ' — не хватило дней, чтобы осталась часть от 14 дней.';
+  if (pre.skippedDoff.length) html += ' Не поставил ' + esc(pre.skippedDoff.join(', ')) + ': на эти даты стоит дейофф.';
+  if (pick.janMiss) html += ' Январские не продлил: весь основной отпуск ушёл на главную поездку, а отдельного доп. отпуска нет.';
+  if (L > 0 && L < 14) html += ' Основного отпуска меньше 14 дней — части от 14 дней не будет (ст. 125 ТК).';
+  if (spec.special.length) {
+    const miss = S.prefs.special.filter(x => !(S.sel[x.i] || md.insideHol[x.i] || md.rest[x.i]));
+    html += ` Особые даты в отдыхе: ${spec.special.length - miss.length} из ${spec.special.length}`
+      + (miss.length ? ' (не вошло: ' + esc(miss.map(x => dLabel(x.i) + (x.label ? ' — ' + x.label : '')).join(', ')) + ')' : '') + '.';
+  }
   html += ' Нажмите «Собрать вариант» ещё раз — будет другой, «Отменить» вернёт прежний.';
   $('#genNote').innerHTML = html;
   document.getElementById('calendar').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
@@ -1663,8 +1771,16 @@ function renderGenSum() {
   }
   if (spec.wins.length) t += ' На точные даты: ' + spec.wins.map(r => r.name + ' (' + rangeLabel(r.winIdx[0], r.winIdx[r.winIdx.length - 1]) + ')').join(', ') + '.';
   if (spec.dest) t += spec.destSpec ? ' Главная поездка: ' + spec.dest.name + ' (' + monthsLabel(spec.destSpec.months) + ').' : ' Главная поездка: ' + spec.dest.name + ' — её сезон только в январе, включите «Хочу продлить январские».';
-  if (spec.janExtend) t += ' Январские продлю: ' + (S.extraDays > 0 && S.prefs.extraMode !== 'attach' ? 'доп. отпуск' : 'самая короткая часть отпуска') + ' начнётся 11 января.';
-  document.querySelectorAll('[data-gensum]').forEach(el => { el.textContent = t; });
+  if (spec.special.length) t += ' Особые даты: ' + spec.special.length + ' — постараюсь захватить их отдыхом.';
+  if (spec.janExtend && spec.dest && !(S.extraDays > 0 && S.prefs.extraMode !== 'attach') && S.mainDays <= 16) t += ' Январские не продлю: весь основной отпуск уйдёт на главную поездку — добавьте отдельный доп. отпуск.';
+  else if (spec.janExtend) t += ' Январские продлю: ' + (S.extraDays > 0 && S.prefs.extraMode !== 'attach' ? 'доп. отпуск' : 'самая короткая часть отпуска') + ' начнётся 11 января.';
+  // В блоке на странице — с целью и подсказкой, где всё выбирать
+  const goalName = (GOALS.find(g => g.id === S.prefs.goal) || GOALS[1]).name;
+  const nothing = !spec.active && !spec.wins.length && !spec.special.length && !spec.dest && !spec.janExtend;
+  const card = nothing
+    ? `Цель — «${goalName}», больше ничего не выбрано. Цель, направления, месяцы и особые даты выбираются в «Настроить подбор». Или сразу «Собрать вариант» — подберу ${spec.auto}.`
+    : `Цель — «${goalName}». ` + t;
+  document.querySelectorAll('[data-gensum]').forEach(el => { el.textContent = el.dataset.gensum === 'card' ? card : t; });
 }
 function syncChips() {
   document.querySelectorAll('[data-res]').forEach(el => el.setAttribute('aria-pressed', String(S.prefs.resorts.includes(el.dataset.res))));
@@ -1679,7 +1795,14 @@ function syncChips() {
   $('#extraMode').value = S.prefs.extraMode;
   $('#janExtend').checked = !!S.prefs.janExtend;
   $('#mainDest').value = S.prefs.mainDest || '';
+  renderSpecial();
   renderGenSum();
+}
+function renderSpecial() {
+  const box = $('#specialChips'), list = S.prefs.special || [];
+  box.innerHTML = list.length
+    ? list.map(x => `<button type="button" class="chip special-chip" data-special-del="${x.i}" title="Убрать"><b>${esc(dLabel(x.i))}</b><span>${x.label ? esc(x.label) + ' · ' : ''}убрать ×</span></button>`).join('')
+    : '<p class="fine">Пока нет. Например, день рождения, свадьба друзей или концерт.</p>';
 }
 function toggleIn(arr, v) { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
 </script>
@@ -1771,6 +1894,25 @@ function bind() {
   $('#extraMode').addEventListener('change', e => { S.prefs.extraMode = e.target.value; renderGenSum(); touched(); });
   $('#janExtend').addEventListener('change', e => { S.prefs.janExtend = e.target.checked; syncChips(); touched(); paint(model); });
   $('#mainDest').addEventListener('change', e => { S.prefs.mainDest = e.target.value; syncChips(); touched(); });
+  // Особые даты
+  const addSpecial = () => {
+    const v = $('#specialDate').value, m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    const i = m ? toIdx(+m[3], +m[2], m[1]) : null;
+    if (i == null) { toast('Выберите дату в 2027 году'); return; }
+    if (S.prefs.special.some(x => x.i === i)) { toast('Эта дата уже есть'); return; }
+    if (S.prefs.special.length >= 20) { toast('Хватит 20 дат'); return; }
+    S.prefs.special.push({ i, label: $('#specialLabel').value.trim().slice(0, 40) });
+    S.prefs.special.sort((a, b) => a.i - b.i);
+    $('#specialDate').value = ''; $('#specialLabel').value = '';
+    syncChips(); touched(); render();
+  };
+  $('#specialAdd').addEventListener('click', addSpecial);
+  ['specialDate', 'specialLabel'].forEach(id => $('#' + id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSpecial(); } }));
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-special-del]'); if (!b) return;
+    S.prefs.special = S.prefs.special.filter(x => x.i !== +b.dataset.specialDel);
+    syncChips(); touched(); render();
+  });
   $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
   // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
   const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
@@ -1840,7 +1982,7 @@ function bind() {
   });
   $('#dlJson').addEventListener('click', () => saveFile('vacation-2027.json', JSON.stringify(serialize(), null, 2)));
   $('#dlCsv').addEventListener('click', () => {
-    if (!model.main.length && !model.extra.length) { toast('План пуст — отметьте дни'); return; }
+    if (!model.main.length && !model.extra.length && !model.doffs.length) { toast('План пуст — отметьте дни'); return; }
     const us = i => pad(DAYS[i].m + 1) + '/' + pad(DAYS[i].d) + '/' + YEAR;
     const q = s => '"' + String(s).replace(/"/g, '""') + '"';
     const rows = ['Subject,Start Date,End Date,All Day Event,Description'];
@@ -1884,10 +2026,19 @@ buildBars();
 buildCalendar();
 buildChips();
 const saved = loadLocal();
-if (!(saved && applyData(saved))) loadExample();
-syncInputs();
+let restored = false;
+try { restored = !!(saved && applyData(saved)); } catch (e) { restored = false; }
+if (!restored) loadExample();
 bind();
-render();
+try { syncInputs(); render(); }
+catch (e) {
+  // Сохранённый план не открывается — показываем пример, чтобы страница работала
+  console.error(e);
+  Object.assign(S, { mainDays: 28, extraDays: 3, dayoffDays: 0, variants: [],
+    prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] } });
+  loadExample(); syncInputs(); render();
+  toast('Сохранённый план повреждён — открыл пример');
+}
 renderStore();
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };
 </script>

@@ -60,3 +60,5 @@ const OFF_RUNS = [];
 for (let i = 0; i < N; i++) { if (!DAYS[i].off) continue; let j = i; while (j + 1 < N && DAYS[j + 1].off) j++; OFF_RUNS.push({ a: i, b: j, len: j - i + 1 }); i = j; }
 // Первый рабочий день после январских каникул (11 января)
 const JAN_START = OFF_RUNS[0].b + 1;
+// Неделя отпуска (7 дней, 5 рабочих) окупается, когда в месяце от 21 рабочего дня: 7/29,3 ≥ 5/N
+const GOOD_WORK = 21;

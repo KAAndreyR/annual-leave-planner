@@ -122,6 +122,8 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
 .btn.primary{background:var(--sea);border-color:var(--sea);color:var(--sea-ink)}
 .btn.primary:hover{filter:brightness(1.07)}
 .btn.ghost{background:transparent}
+.btn.accent{border-color:var(--sea);color:var(--sea);box-shadow:inset 0 0 0 1px var(--sea)}
+.btn.accent:hover{background:var(--sea-soft)}
 .btn.sm{padding:7px 11px;font-size:13px}
 .btn:disabled{opacity:.5;cursor:default}
 
@@ -149,6 +151,34 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
 .goal[aria-checked="true"] span{color:var(--ink)}
 .filter.goals-wrap{margin-bottom:18px}
 .filter.main-dest{margin-bottom:18px}
+.filter.special-wrap{margin-bottom:18px}
+.special-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.special-row .date-in{width:auto}
+.special-row .text-in:not(.date-in){flex:1 1 200px;width:auto;min-width:0}
+.special-chip span{color:var(--muted)}
+/* Телефон: панель кистей компактнее, «Отдых всего» прячем — он есть в проверках */
+@media (max-width:600px){
+  .toolbar{gap:6px;padding-block:8px}
+  .seg button{padding-top:7px;padding-bottom:7px}
+  .seg{width:100%}
+  .seg button{flex:1 1 0;justify-content:center;padding:8px 4px;font-size:13px;gap:5px;min-width:0}
+  .toolbar .btn.sm{padding:6px 9px;font-size:12.5px}
+  .tally{margin-left:0;gap:4px}
+  .pill{font-size:12px;padding:4px 8px}
+  .pill-rest{display:none}
+  .modal-foot .gen-sum{display:none}
+  /* Низ окна в две строки: доп. отпуск с выбором, затем обе кнопки */
+  .genbar.modal-foot{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"lab sel" "clr go";gap:8px 10px;padding:10px 16px;align-items:center}
+  .modal-foot > label{grid-area:lab}
+  .modal-foot #extraMode{grid-area:sel;width:100%}
+  .modal-foot #clearFilters{grid-area:clr;padding:8px 10px;font-size:13px}
+  .modal-foot #genBtn{grid-area:go;padding:8px 10px;font-size:13px}
+  /* Особые даты: дата и кнопка в строку, подпись ниже */
+  .special-row #specialAdd{order:2}
+  .special-row #specialLabel{order:3;flex-basis:100%}
+  .modal-body{padding:14px 16px 16px}
+  .modal-head{padding:12px 12px 12px 16px}
+}
 .dest-select{border:1px solid var(--line-strong);border-radius:10px;background:var(--card);padding:8px 10px;max-width:100%;font-weight:600}
 .goals-wrap .toggle{margin-top:2px;flex-wrap:wrap;font-weight:600}
 .goals-wrap .toggle .fine{font-weight:400}
@@ -233,6 +263,7 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .lg.m{background:var(--sea);color:var(--sea-ink)}
 .lg.e{background:var(--sun);color:var(--sun-ink)}
 .lg.m.off{color:var(--off-on-sea)}
+.lg.sp{outline:2px dashed var(--ink);outline-offset:-3px}
 .lg.d{background:var(--doff);color:var(--doff-ink)}
 .lg.h{background:var(--red-soft);color:var(--red);font-weight:700}
 .lg.hi{background:repeating-linear-gradient(135deg,var(--sea-soft) 0 4px,var(--card) 4px 7px);color:var(--red)}
@@ -244,26 +275,34 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .lg.g{background:var(--ok-soft);color:var(--ok);width:auto;padding:0 6px}
 .example{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px;border:1px dashed var(--sea);border-radius:10px;margin-bottom:14px;font-size:14px}
 .example p{flex:1 1 280px}
-.months{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-@media (max-width:1180px){.months{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:860px){.months{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:540px){.months{grid-template-columns:minmax(0,1fr)}}
+.months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media (max-width:1180px){.months{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:880px){.months{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.months{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Телефон: месяцы листаются вбок, а не идут длинной лентой */
+@media (max-width:540px){
+  .months{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -16px;padding:0 16px 6px;scroll-padding-left:16px;overscroll-behavior-x:contain}
+  .month{flex:0 0 86%;scroll-snap-align:start}
+}
+.swipe-hint{display:none;font-size:12.5px;color:var(--muted);margin:0 0 8px}
+@media (max-width:540px){.swipe-hint{display:block}.toolbar{position:static}}
 /* Пока скрипты не нарисовали календарь, держим под него место — чтобы ниже ничего не съезжало */
-.months:empty{min-height:880px}
-@media (max-width:1180px){.months:empty{min-height:1195px}}
-@media (max-width:860px){.months:empty{min-height:1765px}}
-@media (max-width:540px){.months:empty{min-height:3430px}}
-.month{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 10px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.months:empty{min-height:540px}
+@media (max-width:1180px){.months:empty{min-height:760px}}
+@media (max-width:880px){.months:empty{min-height:1035px}}
+@media (max-width:640px){.months:empty{min-height:1525px}}
+@media (max-width:540px){.months:empty{min-height:280px}}
+.month{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 8px 8px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .month.pref{border-color:var(--sea);box-shadow:inset 0 0 0 1px var(--sea)}
 .month header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px}
-.month h3{font-family:var(--font-display);font-weight:500;font-size:14.5px;letter-spacing:0;text-transform:none;color:var(--ink)}
-.wd{font-size:12px;font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:99px;background:var(--hover);color:var(--muted);white-space:nowrap}
+.month h3{font-family:var(--font-display);font-weight:500;font-size:14px;letter-spacing:0;text-transform:none;color:var(--ink)}
+.wd{font-size:11px;font-variant-numeric:tabular-nums;padding:1px 7px;border-radius:99px;background:var(--hover);color:var(--muted);white-space:nowrap}
 .month.good .wd{background:var(--ok-soft);color:var(--ok);font-weight:600}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.dow span{font-size:11px;text-align:center;color:var(--muted)}
+.dow span{font-size:10.5px;text-align:center;color:var(--muted)}
 .dow .we{color:var(--red)}
-.grid{row-gap:3px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
-.day{appearance:none;-webkit-appearance:none;border:0;margin:0;background:transparent;color:var(--ink);font:500 13px/1 var(--font-body);font-variant-numeric:tabular-nums;height:32px;border-radius:8px;cursor:pointer;position:relative;padding:0;min-width:0}
+.grid{row-gap:2px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.day{appearance:none;-webkit-appearance:none;border:0;margin:0;background:transparent;color:var(--ink);font:500 12.5px/1 var(--font-body);font-variant-numeric:tabular-nums;height:28px;border-radius:8px;cursor:pointer;position:relative;padding:0;min-width:0}
 .day:hover{background:var(--hover)}
 .day.off{color:var(--red)}
 .day.ws{text-decoration:underline dotted;text-underline-offset:3px}
@@ -276,6 +315,8 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 /* Выходной внутри отпуска — красный номер, как у выходных в календаре */
 .day.off.s-m{color:var(--off-on-sea)}
 .day.off.s-e{color:var(--off-on-sun)}
+/* Особая дата — пунктирная рамка поверх любого фона */
+.day.special{outline:2px dashed var(--ink);outline-offset:-3px}
 .day.s-d{background:var(--doff);color:var(--doff-ink)}
 .day.s-h{background:repeating-linear-gradient(135deg,var(--sea-soft) 0 5px,var(--card) 5px 9px);color:var(--red)}
 .day.s-h.hk2{background:repeating-linear-gradient(135deg,var(--sun-soft) 0 5px,var(--card) 5px 9px)}
@@ -285,7 +326,7 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .day.er{border-top-right-radius:8px;border-bottom-right-radius:8px}
 .day.anchor{box-shadow:inset 0 0 0 2px var(--ink)}
 .day:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
-.msum{font-size:12px;color:var(--muted);padding:6px 2px 0;margin-top:auto;min-height:18px;font-variant-numeric:tabular-nums}
+.msum{font-size:11.5px;color:var(--muted);padding:4px 2px 0;margin-top:auto;min-height:16px;font-variant-numeric:tabular-nums}
 .msum b{color:var(--ink);font-weight:600}
 
 /* Результаты */
@@ -349,7 +390,7 @@ th:first-child,td:first-child{text-align:left}
 th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 textarea.plan-table{tab-size:14;white-space:pre;overflow-x:auto}
 td small{display:block;color:var(--muted);font-size:11.5px}
-tr.good td:first-child::after{content:"20+";margin-left:6px;font-size:10.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:1px 5px;border-radius:99px;vertical-align:1px}
+tr.good td:first-child::after{content:"21+";margin-left:6px;font-size:10.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:1px 5px;border-radius:99px;vertical-align:1px}
 .tip{font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--ok-soft)}
 .tip b{color:var(--ok)}
 
@@ -370,7 +411,7 @@ tr.good td:first-child::after{content:"20+";margin-left:6px;font-size:10.5px;fon
 .rules{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:1100px){.rules{grid-template-columns:minmax(0,1fr)}}
 .law{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.law li{display:grid;grid-template-columns:7.5rem minmax(0,1fr);gap:12px;font-size:14px;align-items:baseline}
+.law li{display:grid;grid-template-columns:9rem minmax(0,1fr);gap:12px;font-size:14px;align-items:baseline}
 .law .art{font-family:var(--font-mono);font-size:12px;color:var(--sea);font-weight:500;white-space:nowrap}
 .law .art a,.dl2 dt a,footer.foot a{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:2px}
 .law .art a:hover,.dl2 dt a:hover,footer.foot a:hover{text-decoration-color:currentColor}

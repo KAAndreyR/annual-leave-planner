@@ -65,15 +65,17 @@ RESORTS.forEach(r => {
   if (r.win) { r.winIdx = []; for (let i = dayIdx(r.win[0][1], r.win[0][0]); i <= dayIdx(r.win[1][1], r.win[1][0]); i++) if (!DAYS[i].hol) r.winIdx.push(i); }
 });
 const TRAVEL = RESORTS.filter(r => r.cat !== 'home');
-const RES_BY_ID = Object.fromEntries(RESORTS.map(r => [r.id, r]));
+// Словари без прототипа: id вроде «constructor» из чужого файла не должны находить Object.prototype
+const dict = obj => Object.assign(Object.create(null), obj);
+const RES_BY_ID = dict(Object.fromEntries(RESORTS.map(r => [r.id, r])));
 // Старые id из сохранённых планов
-const RES_ALIAS = { antalya:'turkey', hurghada:'egypt', dubai:'uae', phuket:'thai', nhatrang:'vietnam', sochi:'rusea', crimea:'rusea',
-  kaliningrad:'rucity', spb:'rucity', kazan:'rucity', altai:'rusnature', baikal:'rusnature', karelia:'rusnature', teriberka:'aurora', srilanka:'surf' };
-const resolveRes = id => RES_BY_ID[id] ? id : (RES_ALIAS[id] && RES_BY_ID[RES_ALIAS[id]] ? RES_ALIAS[id] : null);
+const RES_ALIAS = dict({ antalya:'turkey', hurghada:'egypt', dubai:'uae', phuket:'thai', nhatrang:'vietnam', sochi:'rusea', crimea:'rusea',
+  kaliningrad:'rucity', spb:'rucity', kazan:'rucity', altai:'rusnature', baikal:'rusnature', karelia:'rusnature', teriberka:'aurora', srilanka:'surf' });
+const resolveRes = id => typeof id !== 'string' ? null : RES_BY_ID[id] ? id : (RES_ALIAS[id] && RES_BY_ID[RES_ALIAS[id]] ? RES_ALIAS[id] : null);
 const GOALS = [
   { id:'rest', name:'Максимальный отдых', desc:'Цепляю отпуск к праздникам и выходным, чтобы отдыхать подряд дольше. Майские в ходу, хотя по деньгам май в минусе.' },
-  { id:'standard', name:'Стандартный', desc:'Баланс отдыха и денег: часть на 2–3 недели, остальное неделями, выходные по краям.' },
-  { id:'money', name:'Максимальная выгода', desc:'Только месяцы с 20+ рабочими днями, части с субботы по воскресенье: выходные внутри оплачиваются, а зарплата за них не теряется.' }
+  { id:'standard', name:'Стандартный', desc:'Баланс отдыха и денег: одна часть на две недели, остальное неделями, выходные по краям.' },
+  { id:'money', name:'Максимальная выгода', desc:'Только месяцы с 21+ рабочими днями, части с субботы по воскресенье: больше выходных оплачивается отпускными. Цена — отдыха меньше: дни отпуска уходят на выходные, которые и так свободны.' }
 ];
 const GOAL_IDS = GOALS.map(g => g.id);
 const SEASONS = [
@@ -82,4 +84,4 @@ const SEASONS = [
   { id:'summer', name:'Лето', months:[6,7,8] },
   { id:'autumn', name:'Осень', months:[9,10,11] }
 ];
-const SEASON_BY_ID = Object.fromEntries(SEASONS.map(s => [s.id, s]));
+const SEASON_BY_ID = dict(Object.fromEntries(SEASONS.map(s => [s.id, s])));

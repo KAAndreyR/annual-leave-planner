@@ -5,7 +5,7 @@
 const S = {
   mainDays: 28, extraDays: 3, dayoffDays: 0, salary: '',
   sel: new Uint8Array(N), notes: {},
-  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '' },
+  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] },
   variants: [], example: false, updatedAt: 0
 };
 let brush = 1, lastClick = null, shiftHeld = false;
@@ -56,16 +56,23 @@ function applyData(d, opts = {}) {
   const p = d.prefs || {};
   S.prefs = {
     resorts: [...new Set((Array.isArray(p.resorts) ? p.resorts : []).map(resolveRes).filter(Boolean))],
-    seasons: (Array.isArray(p.seasons) ? p.seasons : []).filter(id => SEASON_BY_ID[id]),
-    months: (Array.isArray(p.months) ? p.months : []).map(Number).filter(m => m >= 1 && m <= 12),
+    seasons: [...new Set((Array.isArray(p.seasons) ? p.seasons : []).filter(id => typeof id === 'string' && SEASON_BY_ID[id]))],
+    months: [...new Set((Array.isArray(p.months) ? p.months : []).map(Number).filter(m => Number.isInteger(m) && m >= 1 && m <= 12))],
     extraMode: ['auto','attach','bridge'].includes(p.extraMode) ? p.extraMode : 'auto',
     goal: GOAL_IDS.includes(p.goal) ? p.goal : 'standard',
     janExtend: p.janExtend === true,
-    mainDest: resolveRes(p.mainDest) && !RES_BY_ID[resolveRes(p.mainDest)].winIdx ? resolveRes(p.mainDest) : ''
+    mainDest: resolveRes(p.mainDest) && !RES_BY_ID[resolveRes(p.mainDest)].winIdx ? resolveRes(p.mainDest) : '',
+    special: (Array.isArray(p.special) ? p.special : [])
+      .map(x => ({ i: Number(x && x.i), label: String((x && x.label) || '').slice(0, 40) }))
+      .filter((x, k, a) => Number.isInteger(x.i) && x.i >= 0 && x.i < N && a.findIndex(y => y.i === x.i) === k)
+      .sort((a, b) => a.i - b.i).slice(0, 20)
   };
   if (Array.isArray(d.variants) && !opts.keepVariants) {
-    S.variants = d.variants.filter(v => v && typeof v.runs === 'string').slice(0, 20)
+    const incoming = d.variants.filter(v => v && typeof v.runs === 'string').slice(0, 20)
       .map(v => ({ id: String(v.id || Math.random().toString(36).slice(2)), name: String(v.name || 'Вариант'), runs: v.runs, notes: cleanNotes(v.notes), created: +v.created || 0 }));
+    // При загрузке файла варианты добавляются к своим, а не заменяют их
+    if (opts.mergeVariants) { const ids = new Set(S.variants.map(v => v.id)); S.variants = S.variants.concat(incoming.filter(v => !ids.has(v.id))).slice(0, 20); }
+    else S.variants = incoming;
   }
   S.example = !!d.example;
   S.updatedAt = +d.updatedAt || 0;
