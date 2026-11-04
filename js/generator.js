@@ -66,14 +66,21 @@ function takeFwd(s, len) { const idx = []; for (let i = s; i < N && idx.length <
 function takeBack(e, len) { const idx = []; for (let i = e; i >= 0 && idx.length < len; i--) if (!DAYS[i].hol) idx.unshift(i); return idx.length === len ? idx : null; }
 function isFree(sel, a, b) { for (let i = Math.max(0, a); i <= Math.min(N - 1, b); i++) if (sel[i]) return false; return true; }
 function fracIn(idx, months) { let k = 0; for (const i of idx) if (months.has(DAYS[i].m)) k++; return k / idx.length; }
-function splitMain(L, mc, goal) {
+function splitMain(L, mc, goal, nSpecial = 0) {
   if (L <= 16) return [L];
-  const maxParts = mc <= 2 ? 2 : 4;
+  // Много особых дат — больше частей, чтобы на каждую хватило
+  const maxParts = Math.max(mc <= 2 ? 2 : 4, Math.min(5, nSpecial));
   let first, pieces;
   // Одна часть — ровно 14 дней (в «выгоде» 16: с субботы по воскресенье), остальное неделями — так отпуск ложится равномернее
-  if (goal === 'money') { first = 16; pieces = [9, 9, 7, 5]; }
-  else if (goal === 'rest') { first = 14; pieces = [5, 5, 4, 7]; }
-  else { first = 14; pieces = [7, 7, 7, 5, 9]; }
+  // Длины под недели: 7 и 14 — с понедельника по воскресенье, 5 — будни, 9 и 16 — с субботы по воскресенье
+  if (goal === 'money') { first = 16; pieces = [9, 9, 16]; }
+  else if (goal === 'rest') { first = 14; pieces = [5, 9, 9]; }
+  else { first = 14; pieces = [7, 7, 7, 14]; }
+  if (nSpecial >= 3) {
+    // Частей основного — на одну меньше, чем дат: ещё одну обычно берёт доп. отпуск
+    const k = Math.max(1, Math.min(maxParts, nSpecial - 1) - 1), left = L - Math.min(first, L);
+    if (left >= 3 * k) return [Math.min(first, L)].concat(Array.from({ length: k }, (_, j) => Math.floor(left / k) + (j < left % k ? 1 : 0)));
+  }
   first = Math.min(first, L);
   if (L - first > 0 && L - first < 3) first = L; // не оставляем хвост в 1–2 дня
   const parts = [first]; let rest = L - first;
@@ -90,7 +97,14 @@ function splitMain(L, mc, goal) {
 function randomStart(spec, len, goal) {
   // Особые даты: часто ставим часть так, чтобы она их захватила
   if (spec.special && spec.special.length && Math.random() < 0.5) {
-    let i = Math.max(0, rnd(spec.special) - Math.floor(Math.random() * len));
+    const d = rnd(spec.special), good = [];
+    for (let s = Math.max(0, d - len - 3); s <= d; s++) {
+      if (DAYS[s].hol) continue;
+      const prevOff = s > 0 && DAYS[s - 1].off;
+      if ((!DAYS[s].off && prevOff) || (goal === 'money' && DAYS[s].off && !prevOff)) good.push(s);
+    }
+    if (good.length) return rnd(good);
+    let i = Math.max(0, d - Math.floor(Math.random() * len));
     while (i < N - 1 && DAYS[i].hol) i++;
     return i;
   }
@@ -117,6 +131,17 @@ function randomStart(spec, len, goal) {
   while (i < N - 1 && DAYS[i].hol) i++;
   return i;
 }
+// Ровность краёв части. Хорошо: начать после выходных/праздника или в субботу, закончить перед выходными или в воскресенье.
+// Плохо: начать или закончить посреди выходных (воскресенье / суббота) — дни отпуска уходят на половину выходных;
+// чуть хуже: оборвать посреди недели.
+const EDGE_HALF = 8, EDGE_MID = 3;
+function edgePenalty(a, b, isOff = i => DAYS[i].off) {
+  let p = 0;
+  const prevOff = a > 0 && isOff(a - 1), nextOff = b < N - 1 && isOff(b + 1);
+  if (DAYS[a].off && prevOff) p += EDGE_HALF; else if (!DAYS[a].off && !prevOff) p += EDGE_MID;
+  if (DAYS[b].off && nextOff) p += EDGE_HALF; else if (!DAYS[b].off && !nextOff) p += EDGE_MID;
+  return p;
+}
 // Вклад части: сколько дней отдыха подряд она даёт (с выходными по краям) и разница отпускных и потерянной зарплаты, % заработка
 function blockGain(idx) {
   let a = idx[0], b = idx[idx.length - 1];
@@ -124,11 +149,11 @@ function blockGain(idx) {
   while (b < N - 1 && DAYS[b + 1].off) b++;
   const dp = dayPct(); let diff = 0;
   for (const i of idx) { diff += dp; if (DAYS[i].work) diff -= 100 / MONTH_INFO[DAYS[i].m].work; }
-  return { rest: b - a + 1, diff };
+  return { rest: b - a + 1, diff, align: edgePenalty(idx[0], idx[idx.length - 1]) };
 }
 // Веса цели: [отдых, деньги, случайность]
 const GOAL_W = { rest: [1, 0.05, 2], standard: [1, 1, 3], money: [0.1, 1, 0.8] };
-function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + (ev.special || 0) * SPECIAL_W + Math.random() * w[2] * noise; }
+function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + (ev.special || 0) * SPECIAL_W - (ev.align || 0) + Math.random() * w[2] * noise; }
 // Равномерность: насколько части разнесены по году (1 — идеально поровну, 0 — вплотную)
 const EVEN_W = { rest: 4, standard: 14, money: 6 };
 function evenness(placed) {
@@ -183,7 +208,9 @@ function evalSel(sel, special) {
   for (const c of chains) for (let k = c.ra; k <= c.rb; k++) if (!mark[k]) { mark[k] = 1; rest++; }
   const dp = dayPct(); let pay = 0, lost = 0;
   for (let i = 0; i < N; i++) if (sel[i]) { pay += dp; if (DAYS[i].work) lost += 100 / MONTH_INFO[DAYS[i].m].work; }
-  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null, special: special ? special.filter(d => mark[d]).length : 0 };
+  let align = 0;
+  for (const c of buildIntervals(sel, v => v === 1 || v === 2, 0)) align += edgePenalty(c.s, c.e, i => DAYS[i].off || sel[i] === 3);
+  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null, special: special ? special.filter(d => mark[d]).length : 0, align };
 }
 function assignResorts(placed, spec) {
   const notes = {}, used = new Set();
@@ -219,7 +246,7 @@ function presetWins(spec, L) {
 function tryPlan(spec, L, E, minFrac, goal, pre) {
   const sel = new Uint8Array(N), placed = [];
   if (pre) { for (const b of pre.blocks) { b.idx.forEach(i => sel[i] = 1); placed.push({ idx: b.idx, kind: 1, fixed: b.id }); } L = pre.left; }
-  const parts = L > 0 ? splitMain(L, spec.months.size, goal) : [];
+  const parts = L > 0 ? splitMain(L, spec.months.size, goal, spec.special.length) : [];
   const multi = parts.length > 1;
   // Главная поездка забирает самую длинную часть и встаёт первой
   let destLen = 0;
