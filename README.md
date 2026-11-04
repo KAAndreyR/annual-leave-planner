@@ -10,7 +10,7 @@
 
 ## Запуск
 
-Откройте `index.html` в браузере. Чтобы выложить страницу на GitHub Pages: Settings → Pages → Deploy from a branch → `main`, папка `/ (root)`.
+Откройте `index.html` в браузере. На GitHub Pages сайт публикуется сам при каждом push в `main`: это делает workflow `.github/workflows/pages.yml`. В Settings → Pages источником должен быть выбран GitHub Actions.
 
 Есть и версия одним файлом: [`dist/annual-leave-planner.html`](dist/annual-leave-planner.html). Её можно скачать и открыть без остальных файлов. После правок её пересобирают командой `python tools/build_single.py`.
 
@@ -31,6 +31,7 @@
 | `js/generator.js` | подбор вариантов |
 | `js/app.js` | кнопки, варианты, пример и запуск |
 | `tools/build_single.py` | сборка версии одним файлом в `dist/` |
+| `.github/workflows/pages.yml` | публикация на GitHub Pages |
 
 ## Ограничения
 
