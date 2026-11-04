@@ -157,4 +157,10 @@ syncInputs();
 bind();
 render();
 renderStore();
-window.__vacation = { DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };
+// Показываем страницу целиком, когда всё отрисовано и шрифты загружены (но не дольше 1,5 с) — без прыжков вёрстки
+(() => {
+  const show = () => document.documentElement.classList.remove('booting');
+  const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.race([fonts, new Promise(r => setTimeout(r, 1500))]).then(() => requestAnimationFrame(show), show);
+})();
+window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };

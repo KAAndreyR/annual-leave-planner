@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- boot: страница скрыта, пока скрипты не отрисуют её и не загрузятся шрифты (снимает js/app.js; через 3 с — в любом случае) -->
+<style>html{background:#F2F5F7}@media (prefers-color-scheme:dark){html{background:#0F151C}}html.booting body{visibility:hidden}</style>
+<script>document.documentElement.classList.add('booting');setTimeout(function(){document.documentElement.classList.remove('booting')},3000);</script>
+<!-- /boot -->
 <meta name="description" content="Планировщик ежегодного отпуска на 2027 год: производственный календарь, правила ТК РФ, подбор дат и расчёт отпускных.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%96%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <title>Планировщик отпуска 2027</title>
