@@ -311,6 +311,13 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .iv.flag{border-color:var(--red)}
 .iv-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .iv-dates{font-weight:700;font-size:16px}
+.ivs .iv{cursor:pointer}
+.ivs .iv:hover{border-color:var(--line-strong)}
+.ivs .iv select{cursor:default}
+button.iv-dates{border:0;background:none;padding:0;margin:0;color:inherit;font-family:inherit;text-align:left;cursor:pointer;text-decoration:underline dotted;text-decoration-color:var(--line-strong);text-underline-offset:4px}
+button.iv-dates:hover{text-decoration-color:currentColor}
+/* Подсветка дней интервала после перехода к календарю */
+.day.flash{box-shadow:inset 0 0 0 2px var(--ink);z-index:1}
 .iv-dow{color:var(--muted);font-size:13px}
 .iv-n{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .iv-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted)}

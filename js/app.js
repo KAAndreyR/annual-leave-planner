@@ -114,6 +114,16 @@ function bind() {
     if (d.dataset.fold in folds) d.open = !!folds[d.dataset.fold];
     d.addEventListener('toggle', () => { folds[d.dataset.fold] = d.open; try { localStorage.setItem(FOLD_KEY, JSON.stringify(folds)); } catch (e) {} });
   });
+  // Клик по интервалу — прокрутка к его месяцу и подсветка дней
+  let flashTimer = 0;
+  document.addEventListener('click', e => {
+    const iv = e.target.closest('.ivs .iv'); if (!iv || e.target.closest('select, option, a')) return;
+    const s = +iv.dataset.s, last = +iv.dataset.e; if (!cells[s]) return;
+    cells[s].closest('.month').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    cells.forEach(c => c.classList.remove('flash'));
+    for (let i = s; i <= last; i++) cells[i].classList.add('flash');
+    clearTimeout(flashTimer); flashTimer = setTimeout(() => cells.forEach(c => c.classList.remove('flash')), 1800);
+  });
   // Ссылки «Скопировать план» ведут к кнопке копирования
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href="#save"]'); if (!a) return;

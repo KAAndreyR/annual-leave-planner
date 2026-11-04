@@ -175,16 +175,16 @@ function ivHTML(iv) {
   const mm = majorMonth(iv) + 1;
   const offSeason = r && !r.months.includes(mm) ? `<span class="tag off">не сезон: лучше ${monthsLabel(resortMonths(r))}</span>` : '';
   const warn = iv.work === 0 ? `<p class="iv-warn">Только выходные: так отпуск по ТК не оформить. Добавьте в эту часть хотя бы один рабочий день.</p>` : '';
-  return `<li class="iv k${iv.kind}${iv.work === 0 ? ' flag' : ''}">
-    <div class="iv-top"><span class="iv-dates">${rangeLabel(iv.s, iv.e)}</span><span class="iv-dow">${DOW[DAYS[iv.s].dow]}–${DOW[DAYS[iv.e].dow]}</span><span class="iv-n">${dn(iv.vac)}</span></div>
+  return `<li class="iv k${iv.kind}${iv.work === 0 ? ' flag' : ''}" data-s="${iv.s}" data-e="${iv.e}">
+    <div class="iv-top"><button type="button" class="iv-dates" title="Показать в календаре">${rangeLabel(iv.s, iv.e)}</button><span class="iv-dow">${DOW[DAYS[iv.s].dow]}–${DOW[DAYS[iv.e].dow]}</span><span class="iv-n">${dn(iv.vac)}</span></div>
     <div class="iv-meta">${meta.map(x => `<span>${x}</span>`).join('')}</div>
     ${money ? `<div class="iv-money">${money}</div>` : ''}
     <div class="iv-place">${resortSelect(iv)}${offSeason}</div>${warn}</li>`;
 }
 function doffHTML(iv) {
   const n = iv.vac;
-  return `<li class="iv k3">
-    <div class="iv-top"><span class="iv-dates">${rangeLabel(iv.s, iv.e)}</span><span class="iv-dow">${iv.s === iv.e ? DOW_FULL[DAYS[iv.s].dow] : DOW[DAYS[iv.s].dow] + '–' + DOW[DAYS[iv.e].dow]}</span><span class="iv-n">${n} ${plural(n, 'дейофф', 'дейоффа', 'дейоффов')}</span></div>
+  return `<li class="iv k3" data-s="${iv.s}" data-e="${iv.e}">
+    <div class="iv-top"><button type="button" class="iv-dates" title="Показать в календаре">${rangeLabel(iv.s, iv.e)}</button><span class="iv-dow">${iv.s === iv.e ? DOW_FULL[DAYS[iv.s].dow] : DOW[DAYS[iv.s].dow] + '–' + DOW[DAYS[iv.e].dow]}</span><span class="iv-n">${n} ${plural(n, 'дейофф', 'дейоффа', 'дейоффов')}</span></div>
     <div class="iv-meta"><span>отдых подряд <b>${dn(iv.streak)}</b>${iv.streak > n ? ' · ' + rangeLabel(iv.ra, iv.rb) : ''}</span></div></li>`;
 }
 function renderIntervals(md) {
