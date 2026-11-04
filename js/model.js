@@ -3,7 +3,7 @@
 
 // ---------- Состояние ----------
 const S = {
-  mainDays: 28, extraDays: 3, dayoffDays: 0, salary: '', avgPct: 100,
+  mainDays: 28, extraDays: 3, dayoffDays: 0, salary: '',
   sel: new Uint8Array(N), notes: {},
   prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '' },
   variants: [], example: false, updatedAt: 0
@@ -37,7 +37,7 @@ function cleanNotes(obj, sel) {
 }
 function serialize() {
   return {
-    v: 1, year: YEAR, mainDays: S.mainDays, extraDays: S.extraDays, dayoffDays: S.dayoffDays, salary: S.salary, avgPct: S.avgPct,
+    v: 1, year: YEAR, mainDays: S.mainDays, extraDays: S.extraDays, dayoffDays: S.dayoffDays, salary: S.salary,
     runs: encodeRuns(S.sel), notes: S.notes, prefs: S.prefs,
     variants: S.variants.map(v => ({ id: v.id, name: v.name, runs: v.runs, notes: v.notes, created: v.created })),
     example: S.example, updatedAt: S.updatedAt
@@ -50,7 +50,6 @@ function applyData(d, opts = {}) {
   S.mainDays = num(d.mainDays, 28, 0, 120);
   S.extraDays = num(d.extraDays, 3, 0, 60);
   S.dayoffDays = num(d.dayoffDays, 0, 0, 60);
-  S.avgPct = num(d.avgPct, 100, 10, 500);
   S.salary = d.salary ? num(d.salary, '', 0, 1e9) : '';
   S.sel = decodeRuns(d.runs);
   S.notes = cleanNotes(d.notes, S.sel);
@@ -101,7 +100,8 @@ function buildIntervals(sel, test, kind) {
   }
   return out;
 }
-const dayPct = () => S.avgPct / 29.3;
+// Примерно: все 12 месяцев одинаковые, без премий и больничных (ст. 139 ТК: заработок / 12 / 29,3)
+const dayPct = () => 100 / 29.3;
 function lostPct(workBy) { let s = 0; for (let m = 0; m < 12; m++) if (workBy[m]) s += workBy[m] / MONTH_INFO[m].work * 100; return s; }
 function majorMonth(iv) { let best = 0; for (let m = 1; m < 12; m++) if (iv.paidBy[m] > iv.paidBy[best]) best = m; return best; }
 function resortFor(iv) { for (const k in S.notes) { const i = +k; if (i >= iv.s && i <= iv.e) return RES_BY_ID[S.notes[k]] || null; } return null; }

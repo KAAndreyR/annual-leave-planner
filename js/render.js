@@ -159,7 +159,7 @@ function ivHTML(iv) {
   let money;
   if (iv.work > 0) {
     const d = pay - lost, s = d >= 0 ? '+' : '−';
-    money = `разница <b>${s}${pct(Math.abs(d))}</b> оклада${sal ? ` (${s}${rub(Math.abs(d) / 100 * sal)})` : ''}: отпускные ${pct(pay)} против зарплаты ${pct(lost)} за ${iv.work} раб. ${plural(iv.work, 'день', 'дня', 'дней')}`;
+    money = `разница <b>${s}${pct(Math.abs(d))}</b> заработка${sal ? ` (${s}${rub(Math.abs(d) / 100 * sal)})` : ''}: отпускные ${pct(pay)} против зарплаты ${pct(lost)} за ${iv.work} раб. ${plural(iv.work, 'день', 'дня', 'дней')}`;
   } else {
     money = '';
   }
@@ -209,13 +209,13 @@ function renderMoney(md) {
   const bigCls = ratio != null && diff >= 0 ? 'up' : 'down';
   const bigText = ratio == null
     ? 'все отмеченные дни — выходные, а отпуск только на выходные по ТК не оформить'
-    : `оклада за год к обычной зарплате${sal ? ', это ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}. Столько вы ${diff >= 0 ? 'получите сверху' : 'недополучите'}, если взять отпуск в эти дни`;
+    : `заработка за год к обычной зарплате${sal ? ', это ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}. Столько вы ${diff >= 0 ? 'получите сверху' : 'недополучите'}, если взять отпуск в эти дни`;
   $('#moneySummary').innerHTML = `
     <div class="money-big"><span class="big ${bigCls}">${ratio == null ? '—' : sg + pct(Math.abs(diff))}</span>
     <p>${bigText}</p></div>
     <dl class="mini">
-      <div><dt>Отпускные</dt><dd>${pct(pay)} оклада<small>${dn(paid)} × ${nf2.format(dp)}%${sal ? ' · ' + rub(pay / 100 * sal) : ''}</small></dd></div>
-      <div><dt>Пропущенная зарплата</dt><dd>${pct(lost)} оклада<small>${work} раб. ${plural(work, 'день', 'дня', 'дней')}${sal ? ' · ' + rub(lost / 100 * sal) : ''}</small></dd></div>
+      <div><dt>Отпускные</dt><dd>${pct(pay)} заработка<small>${dn(paid)} × ${nf2.format(dp)}%${sal ? ' · ' + rub(pay / 100 * sal) : ''}</small></dd></div>
+      <div><dt>Пропущенная зарплата</dt><dd>${pct(lost)} заработка<small>${work} раб. ${plural(work, 'день', 'дня', 'дней')}${sal ? ' · ' + rub(lost / 100 * sal) : ''}</small></dd></div>
       <div><dt>Отпускные к пропущенному</dt><dd>${ratio == null ? '—' : pct(ratio)}<small>${ratio == null ? 'нет рабочих дней' : 'на 1 ₽ пропущенной зарплаты — ' + nf2.format(ratio / 100) + ' ₽ отпускных'}</small></dd></div>
     </dl>`;
   $('#moneyTable').innerHTML = `<thead><tr><th>Месяц</th><th>Раб. дн.</th><th>Отпуск: раб. / всего</th><th>Зарплата</th><th>Отпускные</th><th>Итого</th></tr></thead><tbody>${rows.join('')}</tbody>`;

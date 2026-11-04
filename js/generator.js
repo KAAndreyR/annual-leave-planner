@@ -103,7 +103,7 @@ function randomStart(spec, len, goal) {
   while (i < N - 1 && DAYS[i].hol) i++;
   return i;
 }
-// Вклад части: сколько дней отдыха подряд она даёт (с выходными по краям) и разница отпускных и потерянной зарплаты, % оклада
+// Вклад части: сколько дней отдыха подряд она даёт (с выходными по краям) и разница отпускных и потерянной зарплаты, % заработка
 function blockGain(idx) {
   let a = idx[0], b = idx[idx.length - 1];
   while (a > 0 && DAYS[a - 1].off) a--;
@@ -258,7 +258,7 @@ function generate() {
   let html = `<b>${esc(G.name)}.</b> ` + md.main.map(desc).join(' · ');
   if (md.extra.length) html += (md.main.length ? ' · доп.: ' : 'Доп.: ') + md.extra.map(desc).join(', ');
   html += `. Отдых всего ${dn(md.restTotal)} за ${dn(md.usedM + md.usedE)} отпуска`;
-  if (pick.ev.ratio != null) html += `, разница к обычной зарплате ${pick.ev.diff >= 0 ? '+' : '−'}${pct(Math.abs(pick.ev.diff))} оклада за год`;
+  if (pick.ev.ratio != null) html += `, разница к обычной зарплате ${pick.ev.diff >= 0 ? '+' : '−'}${pct(Math.abs(pick.ev.diff))} заработка за год`;
   html += '.';
   if (spec.note) html += ' ' + esc(spec.note);
   if (pre.skipped.length) html += ' Не поместилось: ' + esc(pre.skipped.join(', ')) + ' — не хватило дней, чтобы осталась часть от 14 дней.';

@@ -35,7 +35,6 @@ function syncInputs() {
   $('#mainDays').value = S.mainDays;
   $('#extraDays').value = S.extraDays;
   $('#dayoffDays').value = S.dayoffDays;
-  $('#avgPct').value = S.avgPct;
   $('#salary').value = S.salary ? nf0.format(S.salary) : '';
   syncChips();
 }
@@ -45,7 +44,7 @@ function bind() {
     el.addEventListener('input', () => { const v = parseInt(el.value, 10); if (Number.isFinite(v)) { S[key] = clamp(v, min, max); touched(); render(); } });
     el.addEventListener('blur', () => { el.value = S[key]; });
   };
-  num('mainDays', 'mainDays', 0, 120); num('extraDays', 'extraDays', 0, 60); num('dayoffDays', 'dayoffDays', 0, 60); num('avgPct', 'avgPct', 10, 500);
+  num('mainDays', 'mainDays', 0, 120); num('extraDays', 'extraDays', 0, 60); num('dayoffDays', 'dayoffDays', 0, 60);
   document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
     const [k, d] = b.dataset.step.split(':'); const max = k === 'mainDays' ? 120 : 60;
     S[k] = clamp(S[k] + (+d), 0, max); $('#' + k).value = S[k]; touched(); render();
