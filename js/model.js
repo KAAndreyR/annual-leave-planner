@@ -109,7 +109,6 @@ function buildIntervals(sel, test, kind) {
 }
 // Примерно: все 12 месяцев одинаковые, без премий и больничных (ст. 139 ТК: заработок / 12 / 29,3)
 const dayPct = () => 100 / 29.3;
-function lostPct(workBy) { let s = 0; for (let m = 0; m < 12; m++) if (workBy[m]) s += workBy[m] / MONTH_INFO[m].work * 100; return s; }
 function majorMonth(iv) { let best = 0; for (let m = 1; m < 12; m++) if (iv.paidBy[m] > iv.paidBy[best]) best = m; return best; }
 function resortFor(iv) { for (const k in S.notes) { const i = +k; if (i >= iv.s && i <= iv.e) return RES_BY_ID[S.notes[k]] || null; } return null; }
 

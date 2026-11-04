@@ -164,20 +164,12 @@ function resortSelect(iv) {
   return `<select class="place" data-s="${iv.s}" data-e="${iv.e}" aria-label="Куда поехать"><option value="">Куда — не выбрано</option><optgroup label="Сезон подходит (${MON_SH[mm - 1]})">${fit.map(opt).join('')}</optgroup><optgroup label="Не сезон">${other.map(opt).join('')}</optgroup></select>`;
 }
 function ivHTML(iv) {
-  const dp = dayPct(), pay = iv.vac * dp, lost = lostPct(iv.workBy);
-  const sal = S.salary ? +S.salary : 0;
+  // Деньги по частям не показываем — разбивка по месяцам есть в блоке «Деньги»
   const meta = [];
   meta.push(`отдых подряд <b>${dn(iv.streak)}</b>${iv.streak > iv.vac + iv.hol ? ' · ' + rangeLabel(iv.ra, iv.rb) : ''}`);
   meta.push(`рабочих дней <b>${iv.work}</b>`);
   if (iv.hol) meta.push(`<span class="tag">+${iv.hol} ${plural(iv.hol, 'праздник', 'праздника', 'праздников')}, не в счёт</span>`);
   if (iv.work > 0 && iv.wk === 0) meta.push('<span class="tag">только будни</span>');
-  let money;
-  if (iv.work > 0) {
-    const d = pay - lost, s = d >= 0 ? '+' : '−';
-    money = `разница <b>${s}${pct(Math.abs(d))}</b> заработка${sal ? ` (${s}${rub(Math.abs(d) / 100 * sal)})` : ''}: отпускные ${pct(pay)} против зарплаты ${pct(lost)} за ${iv.work} раб. ${plural(iv.work, 'день', 'дня', 'дней')}`;
-  } else {
-    money = '';
-  }
   const r = resortFor(iv);
   const mm = majorMonth(iv) + 1;
   const offSeason = r && !r.months.includes(mm) ? `<span class="tag off">не сезон: лучше ${monthsLabel(resortMonths(r))}</span>` : '';
@@ -185,7 +177,6 @@ function ivHTML(iv) {
   return `<li class="iv k${iv.kind}${iv.work === 0 ? ' flag' : ''}" data-s="${iv.s}" data-e="${iv.e}">
     <div class="iv-top"><button type="button" class="iv-dates" title="Показать в календаре">${rangeLabel(iv.s, iv.e)}</button><span class="iv-dow">${DOW[DAYS[iv.s].dow]}–${DOW[DAYS[iv.e].dow]}</span><span class="iv-n">${dn(iv.vac)}</span></div>
     <div class="iv-meta">${meta.map(x => `<span>${x}</span>`).join('')}</div>
-    ${money ? `<div class="iv-money">${money}</div>` : ''}
     <div class="iv-place">${resortSelect(iv)}${offSeason}</div>${warn}</li>`;
 }
 function doffHTML(iv) {
