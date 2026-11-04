@@ -158,6 +158,8 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
 .goal[aria-checked="true"]{border-color:var(--sea);background:var(--sea-soft);box-shadow:inset 0 0 0 1px var(--sea)}
 .goal[aria-checked="true"] span{color:var(--ink)}
 .filter.goals-wrap{margin-bottom:18px}
+.filter.main-dest{margin-bottom:18px}
+.dest-select{border:1px solid var(--line-strong);border-radius:10px;background:var(--card);padding:8px 10px;max-width:100%;font-weight:600}
 .goals-wrap .toggle{margin-top:2px;flex-wrap:wrap;font-weight:600}
 .goals-wrap .toggle .fine{font-weight:400}
 .res-groups{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px 14px}
@@ -417,6 +419,10 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
         <h3>Цель</h3>
         <div class="goals" id="goalSeg" role="radiogroup" aria-label="Цель подбора"></div>
         <label class="toggle" title="Без галки январь в подбор не попадает: в нём всего 15 рабочих дней, это самый невыгодный месяц"><input type="checkbox" id="janExtend">Хочу продлить январские <span class="fine">— часть отпуска начнётся 11 января; без галки январь не беру</span></label>
+      </div>
+      <div class="filter main-dest">
+        <h3><label for="mainDest">Главная поездка · часть от 14 дней</label></h3>
+        <div class="row"><select id="mainDest" class="dest-select"></select><span class="fine">Самую длинную часть отпуска поставлю в сезон этого направления</span></div>
       </div>
       <div class="filter">
         <h3 id="resHead">Куда</h3>
@@ -724,7 +730,7 @@ const resortWhere = r => r.where && r.where !== 'Россия' ? r.where : (r.wh
 const S = {
   mainDays: 28, extraDays: 3, dayoffDays: 0, salary: '', avgPct: 100,
   sel: new Uint8Array(N), notes: {},
-  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false },
+  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '' },
   variants: [], example: false, updatedAt: 0
 };
 let brush = 1, rangeMode = false, anchorPending = null, lastClick = null, shiftHeld = false;
@@ -780,7 +786,8 @@ function applyData(d, opts = {}) {
     months: (Array.isArray(p.months) ? p.months : []).map(Number).filter(m => m >= 1 && m <= 12),
     extraMode: ['auto','attach','bridge'].includes(p.extraMode) ? p.extraMode : 'auto',
     goal: GOAL_IDS.includes(p.goal) ? p.goal : 'standard',
-    janExtend: p.janExtend === true
+    janExtend: p.janExtend === true,
+    mainDest: resolveRes(p.mainDest) && !RES_BY_ID[resolveRes(p.mainDest)].winIdx ? resolveRes(p.mainDest) : ''
   };
   if (Array.isArray(d.variants) && !opts.keepVariants) {
     S.variants = d.variants.filter(v => v && typeof v.runs === 'string').slice(0, 20)
@@ -887,6 +894,8 @@ function buildCalendar() {
 }
 function buildChips() {
   $('#goalSeg').innerHTML = GOALS.map(g => `<button type="button" class="goal" role="radio" data-goal="${g.id}" aria-checked="false"><b>${esc(g.name)}</b><span>${esc(g.desc)}</span></button>`).join('');
+  $('#mainDest').innerHTML = '<option value="">Любое — подберу сам</option>' + CATS.map(c => `<optgroup label="${esc(c.name)}">` +
+    RESORTS.filter(r => r.cat === c.id && !r.winIdx).map(r => `<option value="${r.id}">${esc(r.name)}${r.where && r.where !== 'Россия' ? ', ' + esc(r.where) : ''} · ${monthsLabel(resortMonths(r))}</option>`).join('') + '</optgroup>').join('');
   $('#resHead').textContent = 'Куда или зачем · ' + RESORTS.length + ' ' + plural(RESORTS.length, 'вариант', 'варианта', 'вариантов');
   $('#resortChips').innerHTML = CATS.map(c => {
     const list = RESORTS.filter(r => r.cat === c.id);
@@ -1277,7 +1286,14 @@ function allowedSpec() {
     if (P.months.includes(1)) note = (note ? note + ' ' : '') + 'Январь пропускаю: включите «Хочу продлить январские».';
     if (!months.size) { const a = autoFor(P.goal); months = a.ms; auto = a.t; }
   }
-  return { months, pool, chosen, byMonth, wins, note, auto, janExtend, janAll, active: M.size > 0 || R.size > 0 };
+  // Главная поездка: часть от 14 дней ставим в её сезон (январь — только с галкой)
+  const dest = P.mainDest ? RES_BY_ID[P.mainDest] : null;
+  let destSpec = null;
+  if (dest) {
+    const dm = new Set(dest.months.map(m => m - 1).filter(m => m !== 0 || janExtend));
+    if (dm.size) destSpec = Object.assign({}, { months: dm, janAll: janExtend && dm.has(0) });
+  }
+  return { months, pool, chosen, byMonth, wins, note, auto, janExtend, janAll, dest, destSpec, active: M.size > 0 || R.size > 0 };
 }
 // Можно ли занимать эти дни: январь — только когда он разрешён
 const janOK = (idx, spec) => spec.janAll || idx.every(i => DAYS[i].m !== 0);
@@ -1424,6 +1440,12 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
   if (pre) { for (const b of pre.blocks) { b.idx.forEach(i => sel[i] = 1); placed.push({ idx: b.idx, kind: 1, fixed: b.id }); } L = pre.left; }
   const parts = L > 0 ? splitMain(L, spec.months.size, goal) : [];
   const multi = parts.length > 1;
+  // Главная поездка забирает самую длинную часть и встаёт первой
+  let destLen = 0;
+  if (spec.destSpec && parts.length) {
+    let k = 0; parts.forEach((p, j) => { if (p > parts[k]) k = j; });
+    destLen = parts.splice(k, 1)[0];
+  }
   let gap = multi ? (spec.months.size >= 4 ? 28 : spec.months.size >= 2 ? 10 : 2) : 1;
   if (placed.length) gap = Math.min(gap, 10);
   // «Хочу продлить январские»: одна часть начинается сразу после каникул — доп. отпуск или самая короткая часть основного
@@ -1442,20 +1464,22 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
   }
   // Для каждой части пробуем несколько стартов и берём лучший под цель
   const K = goal === 'standard' ? 2 : 8;
-  for (const len of parts) {
+  const jobs = (destLen ? [{ len: destLen, dest: true }] : []).concat(parts.map(len => ({ len })));
+  for (const job of jobs) {
+    const len = job.len, sp = job.dest ? Object.assign({}, spec, spec.destSpec) : spec;
     let got = null, best = -Infinity, seen = 0;
     for (let a = 0; a < 80 && seen < K; a++) {
-      const s = randomStart(spec, len, goal); if (s == null) break;
+      const s = randomStart(sp, len, goal); if (s == null) break;
       const idx = takeFwd(s, len); if (!idx) continue;
-      if (!idx.some(i => DAYS[i].work) || !janOK(idx, spec) || onDoff(idx, spec)) continue;
-      if (fracIn(idx, spec.months) < minFrac) continue;
+      if (!idx.some(i => DAYS[i].work) || !janOK(idx, sp) || onDoff(idx, spec)) continue;
+      if (fracIn(idx, sp.months) < (job.dest ? Math.max(minFrac, 0.5) : minFrac)) continue;
       if (!isFree(sel, idx[0] - gap, idx[idx.length - 1] + gap)) continue;
       seen++;
       const sc = goalScore(blockGain(idx), goal, 0.5);
       if (sc > best) { best = sc; got = idx; }
     }
     if (!got) return null;
-    got.forEach(i => sel[i] = 1); placed.push({ idx: got, kind: 1 });
+    got.forEach(i => sel[i] = 1); placed.push(job.dest ? { idx: got, kind: 1, fixed: spec.dest.id } : { idx: got, kind: 1 });
   }
   if (E > 0 && !extraDone) {
     const ex = placeExtra(sel, spec, E, minFrac, placed, goal);
@@ -1505,6 +1529,7 @@ function renderGenSum() {
     if (spec.note) t += ' ' + spec.note;
   }
   if (spec.wins.length) t += ' На точные даты: ' + spec.wins.map(r => r.name + ' (' + rangeLabel(r.winIdx[0], r.winIdx[r.winIdx.length - 1]) + ')').join(', ') + '.';
+  if (spec.dest) t += spec.destSpec ? ' Главная поездка: ' + spec.dest.name + ' (' + monthsLabel(spec.destSpec.months) + ').' : ' Главная поездка: ' + spec.dest.name + ' — её сезон только в январе, включите «Хочу продлить январские».';
   if (spec.janExtend) t += ' Январские продлю: ' + (S.extraDays > 0 && S.prefs.extraMode !== 'attach' ? 'доп. отпуск' : 'самая короткая часть отпуска') + ' начнётся 11 января.';
   $('#genSum').textContent = t;
 }
@@ -1520,6 +1545,7 @@ function syncChips() {
   });
   $('#extraMode').value = S.prefs.extraMode;
   $('#janExtend').checked = !!S.prefs.janExtend;
+  $('#mainDest').value = S.prefs.mainDest || '';
   renderGenSum();
 }
 function toggleIn(arr, v) { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
@@ -1607,6 +1633,7 @@ function bind() {
   });
   $('#extraMode').addEventListener('change', e => { S.prefs.extraMode = e.target.value; renderGenSum(); touched(); });
   $('#janExtend').addEventListener('change', e => { S.prefs.janExtend = e.target.checked; syncChips(); touched(); paint(model); });
+  $('#mainDest').addEventListener('change', e => { S.prefs.mainDest = e.target.value; syncChips(); touched(); });
   $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
   $('#genBtn').addEventListener('click', generate);
   $('#rangeMode').addEventListener('change', e => { rangeMode = e.target.checked; anchorPending = null; paint(model); });
