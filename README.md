@@ -12,6 +12,8 @@
 
 Откройте `index.html` в браузере. Чтобы выложить страницу на GitHub Pages: Settings → Pages → Deploy from a branch → `main`, папка `/ (root)`.
 
+Есть и версия одним файлом: [`dist/annual-leave-planner.html`](dist/annual-leave-planner.html). Её можно скачать и открыть без остальных файлов. После правок её пересобирают командой `python tools/build_single.py`.
+
 ## Устройство
 
 Обычные скрипты без сборки. Подключаются по порядку в `index.html`, у всех общая глобальная область.
@@ -28,6 +30,7 @@
 | `js/editor.js` | отметка дней мышью, касанием, клавишами |
 | `js/generator.js` | подбор вариантов |
 | `js/app.js` | кнопки, варианты, пример и запуск |
+| `tools/build_single.py` | сборка версии одним файлом в `dist/` |
 
 ## Ограничения
 
