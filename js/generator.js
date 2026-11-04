@@ -166,7 +166,9 @@ function assignResorts(placed, spec) {
     const span = p.idx[p.idx.length - 1] - p.idx[0] + 1;
     const fits = r => r.cat === 'home' || span >= 10 || (span >= 5 ? !r.far : r.where === 'Россия' && !r.far);
     const pick = list => { const c = list.filter(r => !r.winIdx && r.months.includes(mm) && !used.has(r.id) && fits(r)); return c.length ? rnd(c) : null; };
-    let r = p.kind === 2 ? (pick(spec.byMonth) || pick(near)) : (pick(spec.pool) || pick(TRAVEL));
+    // Если направления выбраны — предлагаем только их; не подошло ни одно — часть остаётся без направления
+    const own = spec.byMonth.length > 0 && spec.pool === spec.byMonth;
+    let r = p.kind === 2 ? (pick(spec.byMonth) || (own ? null : pick(near))) : (pick(spec.pool) || (own ? null : pick(TRAVEL)));
     if (r) { used.add(r.id); notes[p.idx[0]] = r.id; }
   }
   return notes;
