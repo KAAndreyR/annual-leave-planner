@@ -22,6 +22,8 @@
   --rest:#DDEEF4;
   --doff:#6E56CF;
   --doff-ink:#FFFFFF;
+  --off-on-sea:#FFB8AE;
+  --off-on-sun:#A3150B;
   --font-display:"Unbounded","Golos Text",system-ui,sans-serif;
   --font-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --font-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
@@ -35,7 +37,7 @@
     --red:#FF7A6E; --red-soft:#3D201D;
     --ok:#5BC58A; --ok-soft:#173527; --warn:#E9B04F; --warn-soft:#3B2E12;
     --rest:#14313C;
-    --doff:#A592F0; --doff-ink:#170C33;
+    --doff:#A592F0; --doff-ink:#170C33; --off-on-sea:#8A1308; --off-on-sun:#8A1308;
     color-scheme:dark;
   }
 }
@@ -46,7 +48,7 @@
   --red:#FF7A6E; --red-soft:#3D201D;
   --ok:#5BC58A; --ok-soft:#173527; --warn:#E9B04F; --warn-soft:#3B2E12;
   --rest:#14313C;
-  --doff:#A592F0; --doff-ink:#170C33;
+  --doff:#A592F0; --doff-ink:#170C33; --off-on-sea:#8A1308; --off-on-sun:#8A1308;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -185,15 +187,15 @@ html.modal-open{overflow:hidden}
 .genbar.modal-foot{padding:12px 20px;border-top:1px solid var(--line);background:var(--card)}
 .modal-foot .gen-sum{flex:1 1 240px}
 #save{scroll-margin-top:16px}
-details.fold > summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin:-20px;padding:20px;border-radius:var(--r)}
+details.fold > summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:3px;align-items:center;margin:-20px;padding:20px;border-radius:var(--r)}
 details.fold > summary::-webkit-details-marker{display:none}
-details.fold > summary::before{content:"";flex:none;width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);margin:0 4px 0 2px}
+details.fold > summary::before{content:"";grid-row:1;width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);margin:0 2px}
 details.fold[open] > summary::before{transform:rotate(45deg)}
 details.fold[open] > summary{margin-bottom:0;padding-bottom:14px}
-details.fold > summary h2{margin:0}
+details.fold > summary h2{margin:0;grid-column:2}
 details.fold > summary:hover h2{color:var(--sea)}
 details.fold > summary:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
-.fold-sum{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.fold-sum{grid-column:2;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fold-sum.ok{color:var(--ok)}
 .fold-sum.warn{color:var(--warn)}
 .fold-sum.bad{color:var(--red)}
@@ -230,6 +232,7 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .lg{display:inline-grid;place-items:center;width:22px;height:18px;border-radius:5px;font-size:11px;font-weight:600;position:relative}
 .lg.m{background:var(--sea);color:var(--sea-ink)}
 .lg.e{background:var(--sun);color:var(--sun-ink)}
+.lg.m.off{color:var(--off-on-sea)}
 .lg.d{background:var(--doff);color:var(--doff-ink)}
 .lg.h{background:var(--red-soft);color:var(--red);font-weight:700}
 .lg.hi{background:repeating-linear-gradient(135deg,var(--sea-soft) 0 4px,var(--card) 4px 7px);color:var(--red)}
@@ -270,6 +273,9 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .day.hol{color:var(--red);font-weight:700;background:var(--red-soft)}
 .day.s-m{background:var(--sea);color:var(--sea-ink)}
 .day.s-e{background:var(--sun);color:var(--sun-ink)}
+/* Выходной внутри отпуска — красный номер, как у выходных в календаре */
+.day.off.s-m{color:var(--off-on-sea)}
+.day.off.s-e{color:var(--off-on-sun)}
 .day.s-d{background:var(--doff);color:var(--doff-ink)}
 .day.s-h{background:repeating-linear-gradient(135deg,var(--sea-soft) 0 5px,var(--card) 5px 9px);color:var(--red)}
 .day.s-h.hk2{background:repeating-linear-gradient(135deg,var(--sun-soft) 0 5px,var(--card) 5px 9px)}
@@ -341,8 +347,8 @@ tr.good td:first-child::after{content:"20+";margin-left:6px;font-size:10.5px;fon
 .tip b{color:var(--ok)}
 
 /* Сохранение */
-.save-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
-@media (max-width:900px){.save-grid{grid-template-columns:minmax(0,1fr)}}
+.save-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.save-grid{grid-template-columns:minmax(0,1fr)}}
 .save-grid .card{display:flex;flex-direction:column;gap:12px}
 .variants{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .variants li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;min-width:0}
@@ -354,8 +360,8 @@ tr.good td:first-child::after{content:"20+";margin-left:6px;font-size:10.5px;fon
 .x:hover{background:var(--hover);color:var(--red)}
 
 /* Правила */
-.rules{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
-@media (max-width:900px){.rules{grid-template-columns:minmax(0,1fr)}}
+.rules{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.rules{grid-template-columns:minmax(0,1fr)}}
 .law{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .law li{display:grid;grid-template-columns:7.5rem minmax(0,1fr);gap:12px;font-size:14px;align-items:baseline}
 .law .art{font-family:var(--font-mono);font-size:12px;color:var(--sea);font-weight:500;white-space:nowrap}

@@ -9,7 +9,7 @@ function variantSummary(v) {
 }
 function renderVariants() {
   const ul = $('#variants');
-  $('#sumVariants').textContent = S.variants.length ? 'сохранено ' + S.variants.length : 'пока пусто';
+  $('#sumVariants').textContent = S.variants.length ? 'сохранено ' + S.variants.length + ' — откройте, чтобы сравнить' : 'запомните вариант, чтобы сравнить с другими';
   if (!S.variants.length) { ul.innerHTML = '<li class="empty">Пока нет сохранённых вариантов.</li>'; return; }
   ul.innerHTML = S.variants.map(v => `<li><div class="vtxt"><b>${esc(v.name)}</b><span>${esc(variantSummary(v))}</span></div><button type="button" class="btn sm" data-vopen="${esc(v.id)}">Открыть</button><button type="button" class="x" data-vdel="${esc(v.id)}" aria-label="Удалить вариант">×</button></li>`).join('');
 }
