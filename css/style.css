@@ -113,8 +113,6 @@ h1 .yr{color:var(--sea)}
 .suffix i{font-style:normal;color:var(--muted);font-size:14px}
 textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:13px;line-height:1.5}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.store{margin-top:12px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
-.store::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-top:6px}
 .import-box{display:flex;flex-direction:column;gap:10px}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);padding:9px 15px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;line-height:1.2;text-decoration:none}

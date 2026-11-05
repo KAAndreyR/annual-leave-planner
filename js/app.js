@@ -236,5 +236,4 @@ catch (e) {
   loadExample(); syncInputs(); render();
   toast('Сохранённый план повреждён — открыл пример');
 }
-renderStore();
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };

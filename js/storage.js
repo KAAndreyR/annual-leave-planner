@@ -10,12 +10,12 @@ function loadLocal() {
   for (const key of [LS_KEY, LS_KEY_OLD]) { try { const t = localStorage.getItem(key); if (t) return JSON.parse(t); } catch (e) {} }
   return null;
 }
-function touched() { S.updatedAt = Date.now(); localOk = saveLocal(); renderStore(); }
-function renderStore() {
-  const el = $('#storeStatus');
-  if (!S.updatedAt) el.textContent = 'Изменения сохранятся автоматически в этом браузере, на этой странице.';
-  else if (localOk === false) el.textContent = 'Браузер не даёт сохранять. Скопируйте план кнопкой внизу, чтобы не потерять его.';
-  else el.innerHTML = 'Сохранено в этом браузере в ' + new Date(S.updatedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '. Для другого устройства <a href="#save" class="jump">скопируйте план строкой</a>.';
+// Сохраняем молча; если браузер не даёт — говорим один раз
+function touched() {
+  S.updatedAt = Date.now();
+  const ok = saveLocal();
+  if (ok === false && localOk !== false) toast('Браузер не даёт сохранять. Скопируйте план кнопкой внизу, чтобы не потерять его.');
+  localOk = ok;
 }
 async function saveFile(filename, data) {
   try {

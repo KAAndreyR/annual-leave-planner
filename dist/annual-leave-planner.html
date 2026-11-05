@@ -126,8 +126,6 @@ h1 .yr{color:var(--sea)}
 .suffix i{font-style:normal;color:var(--muted);font-size:14px}
 textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:13px;line-height:1.5}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.store{margin-top:12px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
-.store::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-top:6px}
 .import-box{display:flex;flex-direction:column;gap:10px}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);padding:9px 15px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;line-height:1.2;text-decoration:none}
@@ -507,7 +505,6 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
           <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
           <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
         </div>
-        <p class="store" id="storeStatus">Изменения сохранятся автоматически.</p>
       </div>
     </div>
   </section>
@@ -1287,12 +1284,12 @@ function loadLocal() {
   for (const key of [LS_KEY, LS_KEY_OLD]) { try { const t = localStorage.getItem(key); if (t) return JSON.parse(t); } catch (e) {} }
   return null;
 }
-function touched() { S.updatedAt = Date.now(); localOk = saveLocal(); renderStore(); }
-function renderStore() {
-  const el = $('#storeStatus');
-  if (!S.updatedAt) el.textContent = 'Изменения сохранятся автоматически в этом браузере, на этой странице.';
-  else if (localOk === false) el.textContent = 'Браузер не даёт сохранять. Скопируйте план кнопкой внизу, чтобы не потерять его.';
-  else el.innerHTML = 'Сохранено в этом браузере в ' + new Date(S.updatedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '. Для другого устройства <a href="#save" class="jump">скопируйте план строкой</a>.';
+// Сохраняем молча; если браузер не даёт — говорим один раз
+function touched() {
+  S.updatedAt = Date.now();
+  const ok = saveLocal();
+  if (ok === false && localOk !== false) toast('Браузер не даёт сохранять. Скопируйте план кнопкой внизу, чтобы не потерять его.');
+  localOk = ok;
 }
 async function saveFile(filename, data) {
   try {
@@ -2071,7 +2068,6 @@ catch (e) {
   loadExample(); syncInputs(); render();
   toast('Сохранённый план повреждён — открыл пример');
 }
-renderStore();
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };
 </script>
 </body>
