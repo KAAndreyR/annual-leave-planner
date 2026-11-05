@@ -155,6 +155,12 @@ function bind() {
   });
   $('#undoBtn').addEventListener('click', doUndo);
   $('#clearBtn').addEventListener('click', clearAll);
+  // Обозначения и подсказки: по кнопке, закрываются кликом мимо и Esc
+  const legendBtn = $('#legendBtn'), legendPop = $('#legendPop');
+  const setLegend = open => { legendPop.hidden = !open; legendBtn.setAttribute('aria-expanded', String(open)); };
+  legendBtn.addEventListener('click', e => { e.stopPropagation(); setLegend(legendPop.hidden); });
+  document.addEventListener('click', e => { if (!legendPop.hidden && !legendPop.contains(e.target)) setLegend(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !legendPop.hidden) setLegend(false); });
   $('#exampleClear').addEventListener('click', clearAll);
 
   document.addEventListener('change', e => {

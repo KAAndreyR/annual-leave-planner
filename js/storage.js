@@ -44,34 +44,31 @@ function findResort(text) {
 }
 function parsePlan(text) {
   text = String(text || '').trim();
-  if (!text) return { error: 'Поле пустое. Вставьте строку плана.' };
+  if (!text) return { error: 'Поле пустое. Вставьте план.' };
   if (text[0] === '{') { try { return { data: JSON.parse(text) }; } catch (e) { return { error: 'Это похоже на файл плана, но он повреждён.' }; } }
-  // Строки из таблицы (через табуляцию): Вид, С, По, Дней, Куда — переводим в обычный вид «Основной: 05.07–18.07 (Куда);»
-  text = text.split(/\r?\n/).map(line => {
-    if (!line.includes('\t')) return line;
-    const c = line.split('\t').map(x => x.trim());
-    if (!/\d{1,2}\.\d{1,2}/.test(c[1] || '')) return '';
-    const kind = /^доп/i.test(c[0]) ? 'Доп.' : /^(дей|day)/i.test(c[0]) ? 'Дейоффы' : 'Основной';
-    const place = c[4] ? ' (' + c[4].replace(/[()]/g, '') + ')' : '';
-    return kind + ': ' + c[1] + (c[2] && c[2] !== c[1] ? '–' + c[2] : '') + place + ';';
-  }).join('\n');
-  const sel = new Uint8Array(N), notes = {};
-  let kind = 1, count = 0; const bad = [];
-  const re = /(доп)|(осн)|(дей|day)|(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?(?:\s*(?:[-–—]|по|до)\s*(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?)?(?:\s*\(([^)]*)\))?/gi;
-  let m;
-  while ((m = re.exec(text))) {
-    if (m[1]) { kind = 2; continue; }
-    if (m[2]) { kind = 1; continue; }
-    if (m[3]) { kind = 3; continue; }
-    const a = toIdx(+m[4], +m[5], m[6]);
-    const b = m[7] ? toIdx(+m[7], +m[8], m[9]) : a;
-    if (a == null || b == null || b < a) { bad.push(m[0]); continue; }
+  // По строке на интервал: вид, с, по, дней, куда. Столбцы — табуляция или пробелы
+  // (на телефоне при копировании табуляция часто превращается в пробелы).
+  const sel = new Uint8Array(N), notes = {}, bad = [];
+  let count = 0;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    const dates = [...line.matchAll(/(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?/g)];
+    if (!dates.length) continue; // заголовок «Вид С По Дней Куда» и пустые строки
+    const kind = /^доп|^extra/i.test(line) ? 2 : /^(дей|day)/i.test(line) ? 3 : 1;
+    const [d1, d2] = dates;
+    const a = toIdx(+d1[1], +d1[2], d1[3]);
+    const b = d2 ? toIdx(+d2[1], +d2[2], d2[3]) : a;
+    if (a == null || b == null || b < a) { bad.push(line.slice(0, 40)); continue; }
     let first = -1;
     for (let i = a; i <= b; i++) if (kind === 3 ? DAYS[i].work : !DAYS[i].hol) { sel[i] = kind; if (first < 0) first = i; }
+    if (first < 0) { bad.push(line.slice(0, 40)); continue; }
     count++;
-    if (m[10] && first >= 0 && kind !== 3) { const r = findResort(m[10]); if (r) notes[first] = r.id; }
+    // «Куда» — хвост строки после дат и числа дней
+    const last = d2 || d1;
+    const place = line.slice(last.index + last[0].length).replace(/^\s*\d+(?=\s|$)/, '').replace(/[()]/g, '').replace(/^[\s,;:—–-]+/, '').trim();
+    if (place && kind !== 3) { const r = findResort(place); if (r) notes[first] = r.id; }
   }
-  if (!count) return { error: 'Не нашёл ни одной даты. Нужен формат 05.07–18.07.' };
+  if (!count) return { error: 'Не нашёл ни одного интервала. Нужны строки вида: Основной 05.07.2027 18.07.2027 14 Крит и Родос' };
   return { sel, notes, count, bad };
 }
 function applyImport(text, source) {

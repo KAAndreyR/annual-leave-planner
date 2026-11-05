@@ -62,8 +62,8 @@
       </div>
       <div class="card import-box">
         <h2>Сохранённый план</h2>
-        <p class="hint">Вставьте план, который раньше скопировали кнопкой <a href="#save" class="jump">«Скопировать план»</a> (можно прямо из таблицы), или свои даты в таком виде: <code>Основной: 05.07–18.07, 20.09–26.09; Доп.: 01.11–03.11; Дейоффы: 30.04, 11.06</code></p>
-        <textarea id="importText" class="text-in" rows="3" placeholder="Основной: 05.07–18.07; Доп.: 01.11–03.11 — или строки из таблицы"></textarea>
+        <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+        <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
         <div class="row">
           <button type="button" class="btn primary" id="importApply">Применить</button>
           <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
@@ -150,21 +150,24 @@
       <button type="button" class="btn ghost sm" id="undoBtn">Отменить</button>
       <button type="button" class="btn ghost sm" id="clearBtn">Очистить</button>
       <div class="tally" id="tally"></div>
-    </div>
-    <p class="cal-hint">Нажмите на день или протяните мышью; Shift + клик — диапазон от прошлого дня. Праздники пропускаются сами, дейофф — только на рабочие дни. Клавиши: 1–3 кисти, 4 ластик, Ctrl+Z отмена.</p>
-    <div class="legend">
-      <span><i class="lg m">5</i>основной</span>
-      <span><i class="lg e">5</i>дополнительный</span>
-      <span><i class="lg m off">6</i>выходной в отпуске</span>
-      <span><i class="lg d">5</i>дейофф</span>
-      <span><i class="lg sp">12</i>особая дата</span>
-      <span><i class="lg h">8</i>праздник</span>
-      <span><i class="lg hi">8</i>праздник внутри отпуска, продлевает его</span>
-      <span><i class="lg r">6</i>выходные рядом с отпуском</span>
-      <span><i class="lg t">3</i>перенесённый выходной</span>
-      <span><i class="lg w">20</i>рабочая суббота</span>
-      <span><i class="lg s">30</i>сокращённый день</span>
-      <span><i class="lg g">22</i>месяц с 21+ рабочими днями</span>
+      <button type="button" class="legend-link" id="legendBtn" aria-expanded="false" aria-controls="legendPop"><span class="qi" aria-hidden="true">?</span><span class="u">Обозначения</span></button>
+      <div class="legend-pop" id="legendPop" role="dialog" aria-label="Обозначения и подсказки" hidden>
+        <p class="cal-hint">Нажмите на день или протяните мышью; Shift + клик — диапазон от прошлого дня. Праздники пропускаются сами, дейофф — только на рабочие дни. Клавиши: 1–3 кисти, 4 ластик, Ctrl+Z отмена.</p>
+        <div class="legend">
+          <span><i class="lg m">5</i>основной</span>
+          <span><i class="lg e">5</i>дополнительный</span>
+          <span><i class="lg m off">6</i>выходной в отпуске</span>
+          <span><i class="lg d">5</i>дейофф</span>
+          <span><i class="lg sp">12</i>особая дата</span>
+          <span><i class="lg h">8</i>праздник</span>
+          <span><i class="lg hi">8</i>праздник внутри отпуска, продлевает его</span>
+          <span><i class="lg r">6</i>выходные рядом с отпуском</span>
+          <span><i class="lg t">3</i>перенесённый выходной</span>
+          <span><i class="lg w">20</i>рабочая суббота</span>
+          <span><i class="lg s">30</i>сокращённый день</span>
+          <span><i class="lg g">22</i>месяц с 21+ рабочими днями</span>
+        </div>
+      </div>
     </div>
     <div class="example" id="exampleBanner">
       <p>Это пример плана, чтобы было видно, как всё работает. Отметьте свои дни поверх, очистите календарь или соберите вариант.</p>

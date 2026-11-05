@@ -177,6 +177,7 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
   .seg button{flex:1 1 0;justify-content:center;padding:8px 4px;font-size:13px;gap:5px;min-width:0}
   .toolbar .btn.sm{padding:6px 9px;font-size:12.5px}
   .tally{margin-left:0;gap:4px}
+  .legend-link{margin-left:auto}
   .pill{font-size:12px;padding:4px 8px}
   .pill-rest{display:none}
   .modal-foot .gen-sum{display:none}
@@ -270,6 +271,16 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .pill.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
 .pill.bad{background:var(--red-soft);border-color:transparent;color:var(--red)}
 .cal-hint{font-size:13px;color:var(--muted);margin:12px 0 8px}
+/* Обозначения — во всплывающем окне у панели кистей */
+.legend-pop{position:absolute;top:calc(100% + 6px);right:0;z-index:9;width:min(760px,100%);background:var(--card);border:1px solid var(--line-strong);border-radius:12px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+.legend-pop .cal-hint{margin:0 0 10px}
+.legend-pop .legend{margin:0}
+/* «Обозначения» — справочная ссылка, не кнопка действия */
+.legend-link{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:4px 0;font:inherit;font-size:13px;color:var(--muted);cursor:pointer}
+.legend-link .u{text-decoration:underline dotted;text-underline-offset:3px}
+.legend-link .qi{width:16px;height:16px;border-radius:50%;border:1.5px solid currentColor;display:inline-grid;place-items:center;font-size:10.5px;font-weight:700;line-height:1}
+.legend-link:hover,.legend-link[aria-expanded="true"]{color:var(--ink)}
+.legend-link:focus-visible{outline:2px solid var(--sea);outline-offset:2px;border-radius:4px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin-bottom:14px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .lg{display:inline-grid;place-items:center;width:22px;height:18px;border-radius:5px;font-size:11px;font-weight:600;position:relative}
@@ -298,7 +309,7 @@ a.jump{color:var(--sea);text-underline-offset:2px}
   .month{flex:0 0 86%;scroll-snap-align:start}
 }
 .swipe-hint{display:none;font-size:12.5px;color:var(--muted);margin:0 0 8px}
-@media (max-width:540px){.swipe-hint{display:block}.toolbar{position:static}}
+@media (max-width:540px){.swipe-hint{display:block}.toolbar{position:relative}}
 /* Пока скрипты не нарисовали календарь, держим под него место — чтобы ниже ничего не съезжало */
 .months:empty{min-height:540px}
 @media (max-width:1180px){.months:empty{min-height:760px}}
@@ -489,8 +500,8 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       </div>
       <div class="card import-box">
         <h2>Сохранённый план</h2>
-        <p class="hint">Вставьте план, который раньше скопировали кнопкой <a href="#save" class="jump">«Скопировать план»</a> (можно прямо из таблицы), или свои даты в таком виде: <code>Основной: 05.07–18.07, 20.09–26.09; Доп.: 01.11–03.11; Дейоффы: 30.04, 11.06</code></p>
-        <textarea id="importText" class="text-in" rows="3" placeholder="Основной: 05.07–18.07; Доп.: 01.11–03.11 — или строки из таблицы"></textarea>
+        <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+        <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
         <div class="row">
           <button type="button" class="btn primary" id="importApply">Применить</button>
           <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
@@ -577,21 +588,24 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       <button type="button" class="btn ghost sm" id="undoBtn">Отменить</button>
       <button type="button" class="btn ghost sm" id="clearBtn">Очистить</button>
       <div class="tally" id="tally"></div>
-    </div>
-    <p class="cal-hint">Нажмите на день или протяните мышью; Shift + клик — диапазон от прошлого дня. Праздники пропускаются сами, дейофф — только на рабочие дни. Клавиши: 1–3 кисти, 4 ластик, Ctrl+Z отмена.</p>
-    <div class="legend">
-      <span><i class="lg m">5</i>основной</span>
-      <span><i class="lg e">5</i>дополнительный</span>
-      <span><i class="lg m off">6</i>выходной в отпуске</span>
-      <span><i class="lg d">5</i>дейофф</span>
-      <span><i class="lg sp">12</i>особая дата</span>
-      <span><i class="lg h">8</i>праздник</span>
-      <span><i class="lg hi">8</i>праздник внутри отпуска, продлевает его</span>
-      <span><i class="lg r">6</i>выходные рядом с отпуском</span>
-      <span><i class="lg t">3</i>перенесённый выходной</span>
-      <span><i class="lg w">20</i>рабочая суббота</span>
-      <span><i class="lg s">30</i>сокращённый день</span>
-      <span><i class="lg g">22</i>месяц с 21+ рабочими днями</span>
+      <button type="button" class="legend-link" id="legendBtn" aria-expanded="false" aria-controls="legendPop"><span class="qi" aria-hidden="true">?</span><span class="u">Обозначения</span></button>
+      <div class="legend-pop" id="legendPop" role="dialog" aria-label="Обозначения и подсказки" hidden>
+        <p class="cal-hint">Нажмите на день или протяните мышью; Shift + клик — диапазон от прошлого дня. Праздники пропускаются сами, дейофф — только на рабочие дни. Клавиши: 1–3 кисти, 4 ластик, Ctrl+Z отмена.</p>
+        <div class="legend">
+          <span><i class="lg m">5</i>основной</span>
+          <span><i class="lg e">5</i>дополнительный</span>
+          <span><i class="lg m off">6</i>выходной в отпуске</span>
+          <span><i class="lg d">5</i>дейофф</span>
+          <span><i class="lg sp">12</i>особая дата</span>
+          <span><i class="lg h">8</i>праздник</span>
+          <span><i class="lg hi">8</i>праздник внутри отпуска, продлевает его</span>
+          <span><i class="lg r">6</i>выходные рядом с отпуском</span>
+          <span><i class="lg t">3</i>перенесённый выходной</span>
+          <span><i class="lg w">20</i>рабочая суббота</span>
+          <span><i class="lg s">30</i>сокращённый день</span>
+          <span><i class="lg g">22</i>месяц с 21+ рабочими днями</span>
+        </div>
+      </div>
     </div>
     <div class="example" id="exampleBanner">
       <p>Это пример плана, чтобы было видно, как всё работает. Отметьте свои дни поверх, очистите календарь или соберите вариант.</p>
@@ -1307,34 +1321,31 @@ function findResort(text) {
 }
 function parsePlan(text) {
   text = String(text || '').trim();
-  if (!text) return { error: 'Поле пустое. Вставьте строку плана.' };
+  if (!text) return { error: 'Поле пустое. Вставьте план.' };
   if (text[0] === '{') { try { return { data: JSON.parse(text) }; } catch (e) { return { error: 'Это похоже на файл плана, но он повреждён.' }; } }
-  // Строки из таблицы (через табуляцию): Вид, С, По, Дней, Куда — переводим в обычный вид «Основной: 05.07–18.07 (Куда);»
-  text = text.split(/\r?\n/).map(line => {
-    if (!line.includes('\t')) return line;
-    const c = line.split('\t').map(x => x.trim());
-    if (!/\d{1,2}\.\d{1,2}/.test(c[1] || '')) return '';
-    const kind = /^доп/i.test(c[0]) ? 'Доп.' : /^(дей|day)/i.test(c[0]) ? 'Дейоффы' : 'Основной';
-    const place = c[4] ? ' (' + c[4].replace(/[()]/g, '') + ')' : '';
-    return kind + ': ' + c[1] + (c[2] && c[2] !== c[1] ? '–' + c[2] : '') + place + ';';
-  }).join('\n');
-  const sel = new Uint8Array(N), notes = {};
-  let kind = 1, count = 0; const bad = [];
-  const re = /(доп)|(осн)|(дей|day)|(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?(?:\s*(?:[-–—]|по|до)\s*(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?)?(?:\s*\(([^)]*)\))?/gi;
-  let m;
-  while ((m = re.exec(text))) {
-    if (m[1]) { kind = 2; continue; }
-    if (m[2]) { kind = 1; continue; }
-    if (m[3]) { kind = 3; continue; }
-    const a = toIdx(+m[4], +m[5], m[6]);
-    const b = m[7] ? toIdx(+m[7], +m[8], m[9]) : a;
-    if (a == null || b == null || b < a) { bad.push(m[0]); continue; }
+  // По строке на интервал: вид, с, по, дней, куда. Столбцы — табуляция или пробелы
+  // (на телефоне при копировании табуляция часто превращается в пробелы).
+  const sel = new Uint8Array(N), notes = {}, bad = [];
+  let count = 0;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    const dates = [...line.matchAll(/(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?/g)];
+    if (!dates.length) continue; // заголовок «Вид С По Дней Куда» и пустые строки
+    const kind = /^доп|^extra/i.test(line) ? 2 : /^(дей|day)/i.test(line) ? 3 : 1;
+    const [d1, d2] = dates;
+    const a = toIdx(+d1[1], +d1[2], d1[3]);
+    const b = d2 ? toIdx(+d2[1], +d2[2], d2[3]) : a;
+    if (a == null || b == null || b < a) { bad.push(line.slice(0, 40)); continue; }
     let first = -1;
     for (let i = a; i <= b; i++) if (kind === 3 ? DAYS[i].work : !DAYS[i].hol) { sel[i] = kind; if (first < 0) first = i; }
+    if (first < 0) { bad.push(line.slice(0, 40)); continue; }
     count++;
-    if (m[10] && first >= 0 && kind !== 3) { const r = findResort(m[10]); if (r) notes[first] = r.id; }
+    // «Куда» — хвост строки после дат и числа дней
+    const last = d2 || d1;
+    const place = line.slice(last.index + last[0].length).replace(/^\s*\d+(?=\s|$)/, '').replace(/[()]/g, '').replace(/^[\s,;:—–-]+/, '').trim();
+    if (place && kind !== 3) { const r = findResort(place); if (r) notes[first] = r.id; }
   }
-  if (!count) return { error: 'Не нашёл ни одной даты. Нужен формат 05.07–18.07.' };
+  if (!count) return { error: 'Не нашёл ни одного интервала. Нужны строки вида: Основной 05.07.2027 18.07.2027 14 Крит и Родос' };
   return { sel, notes, count, bad };
 }
 function applyImport(text, source) {
@@ -1979,6 +1990,12 @@ function bind() {
   });
   $('#undoBtn').addEventListener('click', doUndo);
   $('#clearBtn').addEventListener('click', clearAll);
+  // Обозначения и подсказки: по кнопке, закрываются кликом мимо и Esc
+  const legendBtn = $('#legendBtn'), legendPop = $('#legendPop');
+  const setLegend = open => { legendPop.hidden = !open; legendBtn.setAttribute('aria-expanded', String(open)); };
+  legendBtn.addEventListener('click', e => { e.stopPropagation(); setLegend(legendPop.hidden); });
+  document.addEventListener('click', e => { if (!legendPop.hidden && !legendPop.contains(e.target)) setLegend(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !legendPop.hidden) setLegend(false); });
   $('#exampleClear').addEventListener('click', clearAll);
 
   document.addEventListener('change', e => {
