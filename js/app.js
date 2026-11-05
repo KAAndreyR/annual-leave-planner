@@ -104,7 +104,8 @@ function bind() {
     S.prefs.special = S.prefs.special.filter(x => x.i !== +b.dataset.specialDel);
     syncChips(); touched(); render();
   });
-  $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
+  // Сбросить выбор — все настройки подбора к исходным
+  $('#clearFilters').addEventListener('click', () => { S.prefs = defaultPrefs(); syncChips(); touched(); render(); });
   // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
   const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
   const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
@@ -143,6 +144,15 @@ function bind() {
     for (let i = s; i <= last; i++) cells[i].classList.add('flash');
     clearTimeout(flashTimer); flashTimer = setTimeout(() => cells.forEach(c => c.classList.remove('flash')), 1800);
   });
+  // Ссылка «Сохранённый план» раскрывает блок вставки наверху
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href="#import"]'); if (!a) return;
+    e.preventDefault();
+    const d = $('#import'); d.open = true;
+    const ta = $('#importText');
+    ta.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    ta.focus({ preventScroll: true });
+  });
   // Ссылки «Скопировать план» ведут к кнопке копирования
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href="#save"]'); if (!a) return;
@@ -155,12 +165,17 @@ function bind() {
   });
   $('#undoBtn').addEventListener('click', doUndo);
   $('#clearBtn').addEventListener('click', clearAll);
-  // Обозначения и подсказки: по кнопке, закрываются кликом мимо и Esc
-  const legendBtn = $('#legendBtn'), legendPop = $('#legendPop');
-  const setLegend = open => { legendPop.hidden = !open; legendBtn.setAttribute('aria-expanded', String(open)); };
-  legendBtn.addEventListener('click', e => { e.stopPropagation(); setLegend(legendPop.hidden); });
-  document.addEventListener('click', e => { if (!legendPop.hidden && !legendPop.contains(e.target)) setLegend(false); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !legendPop.hidden) setLegend(false); });
+  // Всплывающие пояснения («Обозначения», «Как считается»): по ссылке, закрываются кликом мимо и Esc
+  const pops = [...document.querySelectorAll('.legend-link[aria-controls]')].map(btn => ({ btn, pop: document.getElementById(btn.getAttribute('aria-controls')) }));
+  const setPop = (p, open) => { p.pop.hidden = !open; p.btn.setAttribute('aria-expanded', String(open)); };
+  pops.forEach(p => p.btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = p.pop.hidden;
+    pops.forEach(q => setPop(q, false));
+    setPop(p, open);
+  }));
+  document.addEventListener('click', e => pops.forEach(p => { if (!p.pop.hidden && !p.pop.contains(e.target)) setPop(p, false); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') pops.forEach(p => { if (!p.pop.hidden) setPop(p, false); }); });
   $('#exampleClear').addEventListener('click', clearAll);
 
   document.addEventListener('change', e => {
@@ -232,7 +247,7 @@ catch (e) {
   // Сохранённый план не открывается — показываем пример, чтобы страница работала
   console.error(e);
   Object.assign(S, { mainDays: 28, extraDays: 3, dayoffDays: 0, variants: [],
-    prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] } });
+    prefs: defaultPrefs() });
   loadExample(); syncInputs(); render();
   toast('Сохранённый план повреждён — открыл пример');
 }

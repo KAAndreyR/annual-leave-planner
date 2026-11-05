@@ -2,10 +2,12 @@
 'use strict';
 
 // ---------- Состояние ----------
+// Настройки подбора по умолчанию (их же возвращает «Сбросить выбор»)
+function defaultPrefs() { return { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] }; }
 const S = {
   mainDays: 28, extraDays: 3, dayoffDays: 0, salary: '',
   sel: new Uint8Array(N), notes: {},
-  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] },
+  prefs: defaultPrefs(),
   variants: [], example: false, updatedAt: 0
 };
 let brush = 1, lastClick = null, shiftHeld = false;

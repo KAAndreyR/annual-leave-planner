@@ -126,7 +126,7 @@ function randomStart(spec, len, goal) {
   // день недели старта: 0 — понедельник, 5 — суббота
   const target = goal === 'money' ? (q < 0.7 ? 5 : q < 0.82 ? 4 : -1)
     : goal === 'rest' ? (q < 0.75 ? 0 : -1)
-    : (q < 0.55 ? 0 : q < 0.75 ? 5 : -1);
+    : (q < 0.75 ? 0 : -1);
   if (target >= 0) while (i > 0 && i < N - 1 && DAYS[i].dow !== target) i += dir;
   while (i < N - 1 && DAYS[i].hol) i++;
   return i;
@@ -142,18 +142,26 @@ function edgePenalty(a, b, isOff = i => DAYS[i].off) {
   if (DAYS[b].off && nextOff) p += EDGE_HALF; else if (!DAYS[b].off && !nextOff) p += EDGE_MID;
   return p;
 }
-// Вклад части: сколько дней отдыха подряд она даёт (с выходными по краям) и разница отпускных и потерянной зарплаты, % заработка
+// Лишние выходные в отпуске: в целых неделях их 2 из 7, всё сверх — дни отпуска, потраченные на дни,
+// которые и так свободны. «Стандартный» этого избегает, «Максимальная выгода» — наоборот, ищет.
+const OFF_W = { rest: 0, standard: 10, money: 0 };
+function excessOff(idx) {
+  let off = 0;
+  for (const i of idx) if (!DAYS[i].work) off++;
+  return Math.max(0, off - Math.floor(idx.length * 2 / 7));
+}
+// Вклад части: сколько дней отдыха подряд она даёт (с выходными по краям) и разница отпускных и потерянной зарплаты, % месячного заработка
 function blockGain(idx) {
   let a = idx[0], b = idx[idx.length - 1];
   while (a > 0 && DAYS[a - 1].off) a--;
   while (b < N - 1 && DAYS[b + 1].off) b++;
   const dp = dayPct(); let diff = 0;
   for (const i of idx) { diff += dp; if (DAYS[i].work) diff -= 100 / MONTH_INFO[DAYS[i].m].work; }
-  return { rest: b - a + 1, diff, align: edgePenalty(idx[0], idx[idx.length - 1]) };
+  return { rest: b - a + 1, diff, align: edgePenalty(idx[0], idx[idx.length - 1]), excess: excessOff(idx) };
 }
 // Веса цели: [отдых, деньги, случайность]
 const GOAL_W = { rest: [1, 0.05, 2], standard: [1, 1, 3], money: [0.1, 1, 0.8] };
-function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + (ev.special || 0) * SPECIAL_W - (ev.align || 0) + Math.random() * w[2] * noise; }
+function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + (ev.special || 0) * SPECIAL_W - (ev.align || 0) - (ev.excess || 0) * (OFF_W[goal] || 0) + Math.random() * w[2] * noise; }
 // Равномерность: насколько части разнесены по году (1 — идеально поровну, 0 — вплотную)
 const EVEN_W = { rest: 4, standard: 14, money: 6 };
 function evenness(placed) {
@@ -195,7 +203,10 @@ function placeExtra(sel, spec, E, minFrac, placed, goal) {
   // Вплотную — к последней части основного, сначала после неё
   for (const p of mains.slice().sort((a, b) => b.idx[0] - a.idx[0])) {
     for (const dir of [1, -1]) {
-      const idx = dir > 0 ? takeFwd(p.idx[p.idx.length - 1] + 1, E) : takeBack(p.idx[0] - 1, E);
+      let from = dir > 0 ? p.idx[p.idx.length - 1] + 1 : p.idx[0] - 1;
+      if (goal !== 'money') while (from >= 0 && from < N && DAYS[from].off) from += dir;
+      if (from < 0 || from >= N) continue;
+      const idx = dir > 0 ? takeFwd(from, E) : takeBack(from, E);
       if (idx && idx.every(i => !sel[i]) && idx.some(i => DAYS[i].work) && (p.jan || janOK(idx, spec) || coversSpecial(idx, spec)) && !onDoff(idx, spec)) return { idx, separate: false };
     }
   }
@@ -208,9 +219,13 @@ function evalSel(sel, special) {
   for (const c of chains) for (let k = c.ra; k <= c.rb; k++) if (!mark[k]) { mark[k] = 1; rest++; }
   const dp = dayPct(); let pay = 0, lost = 0;
   for (let i = 0; i < N; i++) if (sel[i]) { pay += dp; if (DAYS[i].work) lost += 100 / MONTH_INFO[DAYS[i].m].work; }
-  let align = 0;
-  for (const c of buildIntervals(sel, v => v === 1 || v === 2, 0)) align += edgePenalty(c.s, c.e, i => DAYS[i].off || sel[i] === 3);
-  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null, special: special ? special.filter(d => mark[d]).length : 0, align };
+  let align = 0, excess = 0;
+  for (const c of buildIntervals(sel, v => v === 1 || v === 2, 0)) {
+    align += edgePenalty(c.s, c.e, i => DAYS[i].off || sel[i] === 3);
+    const idx = []; for (let k = c.s; k <= c.e; k++) if (sel[k] === 1 || sel[k] === 2) idx.push(k);
+    excess += excessOff(idx);
+  }
+  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null, special: special ? special.filter(d => mark[d]).length : 0, align, excess };
 }
 function assignResorts(placed, spec) {
   const notes = {}, used = new Set();
@@ -320,7 +335,7 @@ function generate() {
   let html = `<b>${esc(G.name)}.</b> ` + md.main.map(desc).join(' · ');
   if (md.extra.length) html += (md.main.length ? ' · доп.: ' : 'Доп.: ') + md.extra.map(desc).join(', ');
   html += `. Отдых всего ${dn(md.restTotal)} за ${dn(md.usedM + md.usedE)} отпуска`;
-  if (pick.ev.ratio != null) html += `, разница к обычной зарплате ${pick.ev.diff >= 0 ? '+' : '−'}${pct(Math.abs(pick.ev.diff))} заработка за год`;
+  if (pick.ev.ratio != null) html += `, разница с обычной зарплатой ${pick.ev.diff >= 0 ? '+' : '−'}${pct(Math.abs(pick.ev.diff))} месячного заработка`;
   html += '.';
   if (spec.note) html += ' ' + esc(spec.note);
   if (pre.skipped.length) html += ' Не поместилось: ' + esc(pre.skipped.join(', ')) + ' — не хватило дней, чтобы осталась часть от 14 дней.';

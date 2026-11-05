@@ -126,7 +126,10 @@ h1 .yr{color:var(--sea)}
 .suffix i{font-style:normal;color:var(--muted);font-size:14px}
 textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:13px;line-height:1.5}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.import-box{display:flex;flex-direction:column;gap:10px}
+/* «Сохранённый план» свёрнут по умолчанию — не растягиваем его на высоту соседнего блока */
+details.import-box{display:block;align-self:start}
+.import-body{display:flex;flex-direction:column;gap:10px}
+.import-body .hint{margin:0}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);padding:9px 15px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;line-height:1.2;text-decoration:none}
 .btn:hover{background:var(--hover)}
@@ -273,6 +276,12 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .legend-pop{position:absolute;top:calc(100% + 6px);right:0;z-index:9;width:min(760px,100%);background:var(--card);border:1px solid var(--line-strong);border-radius:12px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.18)}
 .legend-pop .cal-hint{margin:0 0 10px}
 .legend-pop .legend{margin:0}
+/* «Как считается» в блоке денег */
+.money-note{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;margin:0 0 12px}
+.money-note .hint{margin:0}
+.how-pop{width:min(600px,100%)}
+.how-pop p{margin:0 0 8px;font-size:13.5px;line-height:1.5}
+.how-pop p:last-child{margin-bottom:0}
 /* «Обозначения» — справочная ссылка, не кнопка действия */
 .legend-link{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:4px 0;font:inherit;font-size:13px;color:var(--muted);cursor:pointer}
 .legend-link .u{text-decoration:underline dotted;text-underline-offset:3px}
@@ -391,12 +400,12 @@ button.iv-dates:hover{text-decoration-color:currentColor}
 .iv-place .tag.off{background:var(--warn-soft);color:var(--warn)}
 .iv-warn{font-size:13.5px;color:var(--red);font-weight:500}
 
-.money-big{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:6px}
+.money-big{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin-bottom:6px}
 .money-big .big{font-family:var(--font-display);font-weight:700;font-size:clamp(2rem,4.6vw,2.8rem);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .money-big .big.up{color:var(--ok)}
 .money-big .big.down{color:var(--red)}
-.money-big p{font-size:14px;color:var(--muted);max-width:32ch}
-.mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 16px;padding:0}
+.money-big p{margin:0;font-size:14px;color:var(--muted);max-width:46ch}
+.mini{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 16px;padding:0}
 @media (max-width:480px){.mini{grid-template-columns:minmax(0,1fr)}}
 .mini div{background:var(--hover);border-radius:10px;padding:10px 12px;min-width:0}
 .mini dt{font-size:12px;color:var(--muted)}
@@ -411,8 +420,6 @@ th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;le
 textarea.plan-table{tab-size:14;white-space:pre;overflow-x:auto}
 td small{display:block;color:var(--muted);font-size:11.5px}
 tr.good td:first-child::after{content:"21+";margin-left:6px;font-size:10.5px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:1px 5px;border-radius:99px;vertical-align:1px}
-.tip{font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--ok-soft)}
-.tip b{color:var(--ok)}
 
 /* Сохранение */
 .save-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
@@ -496,16 +503,18 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
           </div>
         </div>
       </div>
-      <div class="card import-box">
-        <h2>Сохранённый план</h2>
-        <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
-        <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
-        <div class="row">
-          <button type="button" class="btn primary" id="importApply">Применить</button>
-          <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
-          <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+      <details class="card fold import-box" data-fold="import" id="import">
+        <summary><h2>Сохранённый план</h2><span class="fold-sum">вставить план из таблицы или файла</span></summary>
+        <div class="import-body">
+          <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+          <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
+          <div class="row">
+            <button type="button" class="btn primary" id="importApply">Применить</button>
+            <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
+            <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+          </div>
         </div>
-      </div>
+      </details>
     </div>
   </section>
 
@@ -622,18 +631,25 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
     </details>
     <details class="card fold" data-fold="money" open>
       <summary><h2>Деньги</h2><span class="fold-sum" id="sumMoney"></span></summary>
-      <p class="hint" style="margin:0 0 12px">Расчёт примерный: без учёта премий, изменений зарплаты и больничных.</p>
+      <div class="money-note">
+        <p class="hint">Расчёт примерный: без учёта премий, изменений зарплаты и больничных.</p>
+        <button type="button" class="legend-link" id="moneyHowBtn" aria-expanded="false" aria-controls="moneyHow"><span class="qi" aria-hidden="true">?</span><span class="u">Как считается</span></button>
+        <div class="legend-pop how-pop" id="moneyHow" role="dialog" aria-label="Как считаются деньги" hidden>
+          <p>По ст. 139 ТК средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него.</p>
+          <p>Праздники внутри отпуска не оплачиваются отпускными: они не входят ни в отпуск, ни в норму рабочих дней месяца, поэтому и зарплату не уменьшают.</p>
+          <p>Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют.</p>
+          <p>Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
+        </div>
+      </div>
       <div id="moneySummary"></div>
       <div class="table-wrap"><table id="moneyTable"></table></div>
-      <p class="tip" id="moneyTip"></p>
-      <p class="fine" style="margin-top:12px">По ст. 139 ТК средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него. Праздники внутри отпуска не оплачиваются отпускными: они не входят ни в отпуск, ни в норму рабочих дней месяца, поэтому и зарплату не уменьшают. Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют. Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
     </details>
   </section>
 
   <section class="wrap block save-grid" id="save">
     <details class="card fold" data-fold="save">
       <summary><h2>Сохранить и поделиться</h2><span class="fold-sum">скопировать план, скачать CSV или файл</span></summary>
-      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте в поле «Сохранённый план» наверху.</p>
+      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте в поле <a href="#import" class="jump">«Сохранённый план»</a> наверху.</p>
       <textarea id="planText" class="text-in plan-table" rows="3" readonly wrap="off" aria-label="План по строкам"></textarea>
       <div class="row">
         <button type="button" class="btn primary" id="copyPlan">Скопировать план</button>
@@ -827,7 +843,7 @@ const RES_ALIAS = dict({ antalya:'turkey', hurghada:'egypt', dubai:'uae', phuket
 const resolveRes = id => typeof id !== 'string' ? null : RES_BY_ID[id] ? id : (RES_ALIAS[id] && RES_BY_ID[RES_ALIAS[id]] ? RES_ALIAS[id] : null);
 const GOALS = [
   { id:'rest', name:'Максимальный отдых', desc:'Цепляю отпуск к праздникам и выходным, чтобы отдыхать подряд дольше. Майские в ходу, хотя по деньгам май в минусе.' },
-  { id:'standard', name:'Стандартный', desc:'Баланс отдыха и денег: одна часть на две недели, остальное неделями, выходные по краям.' },
+  { id:'standard', name:'Стандартный', desc:'Баланс отдыха и денег: одна часть на две недели, остальное неделями с понедельника, доп. отпуск — на будни. Дни отпуска не уходят на лишние выходные.' },
   { id:'money', name:'Максимальная выгода', desc:'Только месяцы с 21+ рабочими днями, части с субботы по воскресенье: больше выходных оплачивается отпускными. Цена — отдыха меньше: дни отпуска уходят на выходные, которые и так свободны.' }
 ];
 const GOAL_IDS = GOALS.map(g => g.id);
@@ -880,10 +896,12 @@ const resortWhere = r => r.where && r.where !== 'Россия' ? r.where : (r.wh
 'use strict';
 
 // ---------- Состояние ----------
+// Настройки подбора по умолчанию (их же возвращает «Сбросить выбор»)
+function defaultPrefs() { return { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] }; }
 const S = {
   mainDays: 28, extraDays: 3, dayoffDays: 0, salary: '',
   sel: new Uint8Array(N), notes: {},
-  prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] },
+  prefs: defaultPrefs(),
   variants: [], example: false, updatedAt: 0
 };
 let brush = 1, lastClick = null, shiftHeld = false;
@@ -1158,9 +1176,6 @@ function renderChecks(md) {
     for (const iv of md.main.concat(md.extra)) {
       if (iv.work === 0) add('bad', `${rangeLabel(iv.s, iv.e)} (${iv.kind === 2 ? 'доп.' : 'основной'}): только выходные. Отпуск только на выходные по ТК взять нельзя, в части должен быть хотя бы один рабочий день.`);
     }
-    if (md.main.length + md.extra.length > 1 && !out.some(o => o.lvl === 'bad')) {
-      add('info', 'Делить отпуск на части можно только по соглашению с работодателем (ст. 125 ТК).');
-    }
   }
   const icon = { ok: '✓', warn: '!', bad: '×', info: 'i' };
   $('#checks').innerHTML = out.map(o => `<li class="${o.lvl}"><span class="ic" aria-hidden="true">${icon[o.lvl]}</span><span>${o.html}</span></li>`).join('');
@@ -1219,8 +1234,6 @@ function renderMoney(md) {
     const r = v => sal ? `<small>${rub(v / 100 * sal)}</small>` : '';
     rows.push(`<tr class="${mo.work >= GOOD_WORK ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.paid} дн.<small>${mo.vacWork} ${plural(mo.vacWork, 'рабочий', 'рабочих', 'рабочих')}</small></td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
   }
-  const week = w => 7 * dp / (5 / w * 100) * 100;
-  $('#moneyTip').innerHTML = `Неделя отпуска (7 дней, из них 5 рабочих) в месяце с <b>22 рабочими днями</b> даёт ${pct(week(22))} зарплаты за эту неделю, в январе с 15 рабочими днями — ${pct(week(15))}. Поэтому отпуск в месяцах с ${GOOD_WORK}+ рабочими днями выгоднее, а выходные внутри отпуска тоже оплачиваются.`;
   if (!paid) {
     $('#moneySummary').innerHTML = '<p class="hint">Отметьте дни отпуска — здесь появится расчёт.</p>';
     $('#moneyTable').innerHTML = '';
@@ -1231,18 +1244,17 @@ function renderMoney(md) {
   const diff = pay - lost;
   const sg = diff >= 0 ? '+' : '−';
   const bigCls = ratio != null && diff >= 0 ? 'up' : 'down';
-  $('#sumMoney').textContent = ratio == null ? 'нет рабочих дней в отпуске' : `${sg}${pct(Math.abs(diff))} заработка за год${sal ? ' · ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}`;
+  $('#sumMoney').textContent = ratio == null ? 'нет рабочих дней в отпуске' : `${sg}${pct(Math.abs(diff))} месячного заработка${sal ? ' · ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}`;
   $('#sumMoney').className = 'fold-sum ' + (ratio != null && diff >= 0 ? 'ok' : 'bad');
   const bigText = ratio == null
     ? 'все отмеченные дни — выходные, а отпуск только на выходные по ТК не оформить'
-    : `заработка за год к обычной зарплате${sal ? ', это ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}. Столько вы ${diff >= 0 ? 'получите сверху' : 'недополучите'}, если взять отпуск в эти дни`;
+    : `месячного заработка${sal ? ', это ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}. Столько вы ${diff >= 0 ? 'получите сверх обычной зарплаты' : 'недополучите по сравнению с обычной зарплатой'}, если взять отпуск в эти дни`;
   $('#moneySummary').innerHTML = `
     <div class="money-big"><span class="big ${bigCls}">${ratio == null ? '—' : sg + pct(Math.abs(diff))}</span>
     <p>${bigText}</p></div>
     <dl class="mini">
-      <div><dt>Отпускные</dt><dd>${pct(pay)} заработка<small>${dn(paid)} × ${nf2.format(dp)}%${sal ? ' · ' + rub(pay / 100 * sal) : ''}</small></dd></div>
-      <div><dt>Пропущенная зарплата</dt><dd>${pct(lost)} заработка<small>${work} раб. ${plural(work, 'день', 'дня', 'дней')}${sal ? ' · ' + rub(lost / 100 * sal) : ''}</small></dd></div>
-      <div><dt>Отпускные к пропущенному</dt><dd>${ratio == null ? '—' : pct(ratio)}<small>${ratio == null ? 'нет рабочих дней' : 'на 1 ₽ пропущенной зарплаты — ' + nf2.format(ratio / 100) + ' ₽ отпускных'}</small></dd></div>
+      <div><dt>Отпускные</dt><dd>${pct(pay)} месячного заработка<small>${dn(paid)} × ${nf2.format(dp)}%${sal ? ' · ' + rub(pay / 100 * sal) : ''}</small></dd></div>
+      <div><dt>Пропущенная зарплата</dt><dd>${pct(lost)} месячного заработка<small>${work} раб. ${plural(work, 'день', 'дня', 'дней')}${sal ? ' · ' + rub(lost / 100 * sal) : ''}</small></dd></div>
     </dl>`;
   $('#moneyTable').innerHTML = `<thead><tr><th>Месяц</th><th>Раб. дней</th><th>Отпуск</th><th>Зарплата</th><th>Отпускные</th><th>Итого</th></tr></thead><tbody>${rows.join('')}</tbody>`;
 }
@@ -1573,7 +1585,7 @@ function randomStart(spec, len, goal) {
   // день недели старта: 0 — понедельник, 5 — суббота
   const target = goal === 'money' ? (q < 0.7 ? 5 : q < 0.82 ? 4 : -1)
     : goal === 'rest' ? (q < 0.75 ? 0 : -1)
-    : (q < 0.55 ? 0 : q < 0.75 ? 5 : -1);
+    : (q < 0.75 ? 0 : -1);
   if (target >= 0) while (i > 0 && i < N - 1 && DAYS[i].dow !== target) i += dir;
   while (i < N - 1 && DAYS[i].hol) i++;
   return i;
@@ -1589,18 +1601,26 @@ function edgePenalty(a, b, isOff = i => DAYS[i].off) {
   if (DAYS[b].off && nextOff) p += EDGE_HALF; else if (!DAYS[b].off && !nextOff) p += EDGE_MID;
   return p;
 }
-// Вклад части: сколько дней отдыха подряд она даёт (с выходными по краям) и разница отпускных и потерянной зарплаты, % заработка
+// Лишние выходные в отпуске: в целых неделях их 2 из 7, всё сверх — дни отпуска, потраченные на дни,
+// которые и так свободны. «Стандартный» этого избегает, «Максимальная выгода» — наоборот, ищет.
+const OFF_W = { rest: 0, standard: 10, money: 0 };
+function excessOff(idx) {
+  let off = 0;
+  for (const i of idx) if (!DAYS[i].work) off++;
+  return Math.max(0, off - Math.floor(idx.length * 2 / 7));
+}
+// Вклад части: сколько дней отдыха подряд она даёт (с выходными по краям) и разница отпускных и потерянной зарплаты, % месячного заработка
 function blockGain(idx) {
   let a = idx[0], b = idx[idx.length - 1];
   while (a > 0 && DAYS[a - 1].off) a--;
   while (b < N - 1 && DAYS[b + 1].off) b++;
   const dp = dayPct(); let diff = 0;
   for (const i of idx) { diff += dp; if (DAYS[i].work) diff -= 100 / MONTH_INFO[DAYS[i].m].work; }
-  return { rest: b - a + 1, diff, align: edgePenalty(idx[0], idx[idx.length - 1]) };
+  return { rest: b - a + 1, diff, align: edgePenalty(idx[0], idx[idx.length - 1]), excess: excessOff(idx) };
 }
 // Веса цели: [отдых, деньги, случайность]
 const GOAL_W = { rest: [1, 0.05, 2], standard: [1, 1, 3], money: [0.1, 1, 0.8] };
-function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + (ev.special || 0) * SPECIAL_W - (ev.align || 0) + Math.random() * w[2] * noise; }
+function goalScore(ev, goal, noise = 1) { const w = GOAL_W[goal] || GOAL_W.standard; return ev.rest * w[0] + ev.diff * w[1] + (ev.even || 0) * (EVEN_W[goal] || 0) + (ev.special || 0) * SPECIAL_W - (ev.align || 0) - (ev.excess || 0) * (OFF_W[goal] || 0) + Math.random() * w[2] * noise; }
 // Равномерность: насколько части разнесены по году (1 — идеально поровну, 0 — вплотную)
 const EVEN_W = { rest: 4, standard: 14, money: 6 };
 function evenness(placed) {
@@ -1642,7 +1662,10 @@ function placeExtra(sel, spec, E, minFrac, placed, goal) {
   // Вплотную — к последней части основного, сначала после неё
   for (const p of mains.slice().sort((a, b) => b.idx[0] - a.idx[0])) {
     for (const dir of [1, -1]) {
-      const idx = dir > 0 ? takeFwd(p.idx[p.idx.length - 1] + 1, E) : takeBack(p.idx[0] - 1, E);
+      let from = dir > 0 ? p.idx[p.idx.length - 1] + 1 : p.idx[0] - 1;
+      if (goal !== 'money') while (from >= 0 && from < N && DAYS[from].off) from += dir;
+      if (from < 0 || from >= N) continue;
+      const idx = dir > 0 ? takeFwd(from, E) : takeBack(from, E);
       if (idx && idx.every(i => !sel[i]) && idx.some(i => DAYS[i].work) && (p.jan || janOK(idx, spec) || coversSpecial(idx, spec)) && !onDoff(idx, spec)) return { idx, separate: false };
     }
   }
@@ -1655,9 +1678,13 @@ function evalSel(sel, special) {
   for (const c of chains) for (let k = c.ra; k <= c.rb; k++) if (!mark[k]) { mark[k] = 1; rest++; }
   const dp = dayPct(); let pay = 0, lost = 0;
   for (let i = 0; i < N; i++) if (sel[i]) { pay += dp; if (DAYS[i].work) lost += 100 / MONTH_INFO[DAYS[i].m].work; }
-  let align = 0;
-  for (const c of buildIntervals(sel, v => v === 1 || v === 2, 0)) align += edgePenalty(c.s, c.e, i => DAYS[i].off || sel[i] === 3);
-  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null, special: special ? special.filter(d => mark[d]).length : 0, align };
+  let align = 0, excess = 0;
+  for (const c of buildIntervals(sel, v => v === 1 || v === 2, 0)) {
+    align += edgePenalty(c.s, c.e, i => DAYS[i].off || sel[i] === 3);
+    const idx = []; for (let k = c.s; k <= c.e; k++) if (sel[k] === 1 || sel[k] === 2) idx.push(k);
+    excess += excessOff(idx);
+  }
+  return { rest, diff: pay - lost, ratio: lost > 0 ? pay / lost * 100 : null, special: special ? special.filter(d => mark[d]).length : 0, align, excess };
 }
 function assignResorts(placed, spec) {
   const notes = {}, used = new Set();
@@ -1767,7 +1794,7 @@ function generate() {
   let html = `<b>${esc(G.name)}.</b> ` + md.main.map(desc).join(' · ');
   if (md.extra.length) html += (md.main.length ? ' · доп.: ' : 'Доп.: ') + md.extra.map(desc).join(', ');
   html += `. Отдых всего ${dn(md.restTotal)} за ${dn(md.usedM + md.usedE)} отпуска`;
-  if (pick.ev.ratio != null) html += `, разница к обычной зарплате ${pick.ev.diff >= 0 ? '+' : '−'}${pct(Math.abs(pick.ev.diff))} заработка за год`;
+  if (pick.ev.ratio != null) html += `, разница с обычной зарплатой ${pick.ev.diff >= 0 ? '+' : '−'}${pct(Math.abs(pick.ev.diff))} месячного заработка`;
   html += '.';
   if (spec.note) html += ' ' + esc(spec.note);
   if (pre.skipped.length) html += ' Не поместилось: ' + esc(pre.skipped.join(', ')) + ' — не хватило дней, чтобы осталась часть от 14 дней.';
@@ -1936,7 +1963,8 @@ function bind() {
     S.prefs.special = S.prefs.special.filter(x => x.i !== +b.dataset.specialDel);
     syncChips(); touched(); render();
   });
-  $('#clearFilters').addEventListener('click', () => { S.prefs.resorts = []; S.prefs.seasons = []; S.prefs.months = []; syncChips(); touched(); paint(model); });
+  // Сбросить выбор — все настройки подбора к исходным
+  $('#clearFilters').addEventListener('click', () => { S.prefs = defaultPrefs(); syncChips(); touched(); render(); });
   // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
   const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
   const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
@@ -1975,6 +2003,15 @@ function bind() {
     for (let i = s; i <= last; i++) cells[i].classList.add('flash');
     clearTimeout(flashTimer); flashTimer = setTimeout(() => cells.forEach(c => c.classList.remove('flash')), 1800);
   });
+  // Ссылка «Сохранённый план» раскрывает блок вставки наверху
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href="#import"]'); if (!a) return;
+    e.preventDefault();
+    const d = $('#import'); d.open = true;
+    const ta = $('#importText');
+    ta.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    ta.focus({ preventScroll: true });
+  });
   // Ссылки «Скопировать план» ведут к кнопке копирования
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href="#save"]'); if (!a) return;
@@ -1987,12 +2024,17 @@ function bind() {
   });
   $('#undoBtn').addEventListener('click', doUndo);
   $('#clearBtn').addEventListener('click', clearAll);
-  // Обозначения и подсказки: по кнопке, закрываются кликом мимо и Esc
-  const legendBtn = $('#legendBtn'), legendPop = $('#legendPop');
-  const setLegend = open => { legendPop.hidden = !open; legendBtn.setAttribute('aria-expanded', String(open)); };
-  legendBtn.addEventListener('click', e => { e.stopPropagation(); setLegend(legendPop.hidden); });
-  document.addEventListener('click', e => { if (!legendPop.hidden && !legendPop.contains(e.target)) setLegend(false); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !legendPop.hidden) setLegend(false); });
+  // Всплывающие пояснения («Обозначения», «Как считается»): по ссылке, закрываются кликом мимо и Esc
+  const pops = [...document.querySelectorAll('.legend-link[aria-controls]')].map(btn => ({ btn, pop: document.getElementById(btn.getAttribute('aria-controls')) }));
+  const setPop = (p, open) => { p.pop.hidden = !open; p.btn.setAttribute('aria-expanded', String(open)); };
+  pops.forEach(p => p.btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = p.pop.hidden;
+    pops.forEach(q => setPop(q, false));
+    setPop(p, open);
+  }));
+  document.addEventListener('click', e => pops.forEach(p => { if (!p.pop.hidden && !p.pop.contains(e.target)) setPop(p, false); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') pops.forEach(p => { if (!p.pop.hidden) setPop(p, false); }); });
   $('#exampleClear').addEventListener('click', clearAll);
 
   document.addEventListener('change', e => {
@@ -2064,7 +2106,7 @@ catch (e) {
   // Сохранённый план не открывается — показываем пример, чтобы страница работала
   console.error(e);
   Object.assign(S, { mainDays: 28, extraDays: 3, dayoffDays: 0, variants: [],
-    prefs: { resorts: [], seasons: [], months: [], extraMode: 'auto', goal: 'standard', janExtend: false, mainDest: '', special: [] } });
+    prefs: defaultPrefs() });
   loadExample(); syncInputs(); render();
   toast('Сохранённый план повреждён — открыл пример');
 }

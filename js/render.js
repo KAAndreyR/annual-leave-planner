@@ -141,9 +141,6 @@ function renderChecks(md) {
     for (const iv of md.main.concat(md.extra)) {
       if (iv.work === 0) add('bad', `${rangeLabel(iv.s, iv.e)} (${iv.kind === 2 ? 'доп.' : 'основной'}): только выходные. Отпуск только на выходные по ТК взять нельзя, в части должен быть хотя бы один рабочий день.`);
     }
-    if (md.main.length + md.extra.length > 1 && !out.some(o => o.lvl === 'bad')) {
-      add('info', 'Делить отпуск на части можно только по соглашению с работодателем (ст. 125 ТК).');
-    }
   }
   const icon = { ok: '✓', warn: '!', bad: '×', info: 'i' };
   $('#checks').innerHTML = out.map(o => `<li class="${o.lvl}"><span class="ic" aria-hidden="true">${icon[o.lvl]}</span><span>${o.html}</span></li>`).join('');
@@ -202,8 +199,6 @@ function renderMoney(md) {
     const r = v => sal ? `<small>${rub(v / 100 * sal)}</small>` : '';
     rows.push(`<tr class="${mo.work >= GOOD_WORK ? 'good' : ''}"><td>${MONTHS[mo.m]}</td><td>${mo.work}</td><td>${mo.paid} дн.<small>${mo.vacWork} ${plural(mo.vacWork, 'рабочий', 'рабочих', 'рабочих')}</small></td><td>${pct(salaryPct)}${r(salaryPct)}</td><td>${pct(vacPct)}${r(vacPct)}</td><td><b>${pct(total)}</b>${r(total)}</td></tr>`);
   }
-  const week = w => 7 * dp / (5 / w * 100) * 100;
-  $('#moneyTip').innerHTML = `Неделя отпуска (7 дней, из них 5 рабочих) в месяце с <b>22 рабочими днями</b> даёт ${pct(week(22))} зарплаты за эту неделю, в январе с 15 рабочими днями — ${pct(week(15))}. Поэтому отпуск в месяцах с ${GOOD_WORK}+ рабочими днями выгоднее, а выходные внутри отпуска тоже оплачиваются.`;
   if (!paid) {
     $('#moneySummary').innerHTML = '<p class="hint">Отметьте дни отпуска — здесь появится расчёт.</p>';
     $('#moneyTable').innerHTML = '';
@@ -214,18 +209,17 @@ function renderMoney(md) {
   const diff = pay - lost;
   const sg = diff >= 0 ? '+' : '−';
   const bigCls = ratio != null && diff >= 0 ? 'up' : 'down';
-  $('#sumMoney').textContent = ratio == null ? 'нет рабочих дней в отпуске' : `${sg}${pct(Math.abs(diff))} заработка за год${sal ? ' · ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}`;
+  $('#sumMoney').textContent = ratio == null ? 'нет рабочих дней в отпуске' : `${sg}${pct(Math.abs(diff))} месячного заработка${sal ? ' · ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}`;
   $('#sumMoney').className = 'fold-sum ' + (ratio != null && diff >= 0 ? 'ok' : 'bad');
   const bigText = ratio == null
     ? 'все отмеченные дни — выходные, а отпуск только на выходные по ТК не оформить'
-    : `заработка за год к обычной зарплате${sal ? ', это ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}. Столько вы ${diff >= 0 ? 'получите сверху' : 'недополучите'}, если взять отпуск в эти дни`;
+    : `месячного заработка${sal ? ', это ' + sg + rub(Math.abs(diff) / 100 * sal) : ''}. Столько вы ${diff >= 0 ? 'получите сверх обычной зарплаты' : 'недополучите по сравнению с обычной зарплатой'}, если взять отпуск в эти дни`;
   $('#moneySummary').innerHTML = `
     <div class="money-big"><span class="big ${bigCls}">${ratio == null ? '—' : sg + pct(Math.abs(diff))}</span>
     <p>${bigText}</p></div>
     <dl class="mini">
-      <div><dt>Отпускные</dt><dd>${pct(pay)} заработка<small>${dn(paid)} × ${nf2.format(dp)}%${sal ? ' · ' + rub(pay / 100 * sal) : ''}</small></dd></div>
-      <div><dt>Пропущенная зарплата</dt><dd>${pct(lost)} заработка<small>${work} раб. ${plural(work, 'день', 'дня', 'дней')}${sal ? ' · ' + rub(lost / 100 * sal) : ''}</small></dd></div>
-      <div><dt>Отпускные к пропущенному</dt><dd>${ratio == null ? '—' : pct(ratio)}<small>${ratio == null ? 'нет рабочих дней' : 'на 1 ₽ пропущенной зарплаты — ' + nf2.format(ratio / 100) + ' ₽ отпускных'}</small></dd></div>
+      <div><dt>Отпускные</dt><dd>${pct(pay)} месячного заработка<small>${dn(paid)} × ${nf2.format(dp)}%${sal ? ' · ' + rub(pay / 100 * sal) : ''}</small></dd></div>
+      <div><dt>Пропущенная зарплата</dt><dd>${pct(lost)} месячного заработка<small>${work} раб. ${plural(work, 'день', 'дня', 'дней')}${sal ? ' · ' + rub(lost / 100 * sal) : ''}</small></dd></div>
     </dl>`;
   $('#moneyTable').innerHTML = `<thead><tr><th>Месяц</th><th>Раб. дней</th><th>Отпуск</th><th>Зарплата</th><th>Отпускные</th><th>Итого</th></tr></thead><tbody>${rows.join('')}</tbody>`;
 }

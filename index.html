@@ -60,16 +60,18 @@
           </div>
         </div>
       </div>
-      <div class="card import-box">
-        <h2>Сохранённый план</h2>
-        <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
-        <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
-        <div class="row">
-          <button type="button" class="btn primary" id="importApply">Применить</button>
-          <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
-          <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+      <details class="card fold import-box" data-fold="import" id="import">
+        <summary><h2>Сохранённый план</h2><span class="fold-sum">вставить план из таблицы или файла</span></summary>
+        <div class="import-body">
+          <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+          <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
+          <div class="row">
+            <button type="button" class="btn primary" id="importApply">Применить</button>
+            <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
+            <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+          </div>
         </div>
-      </div>
+      </details>
     </div>
   </section>
 
@@ -186,18 +188,25 @@
     </details>
     <details class="card fold" data-fold="money" open>
       <summary><h2>Деньги</h2><span class="fold-sum" id="sumMoney"></span></summary>
-      <p class="hint" style="margin:0 0 12px">Расчёт примерный: без учёта премий, изменений зарплаты и больничных.</p>
+      <div class="money-note">
+        <p class="hint">Расчёт примерный: без учёта премий, изменений зарплаты и больничных.</p>
+        <button type="button" class="legend-link" id="moneyHowBtn" aria-expanded="false" aria-controls="moneyHow"><span class="qi" aria-hidden="true">?</span><span class="u">Как считается</span></button>
+        <div class="legend-pop how-pop" id="moneyHow" role="dialog" aria-label="Как считаются деньги" hidden>
+          <p>По ст. 139 ТК средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него.</p>
+          <p>Праздники внутри отпуска не оплачиваются отпускными: они не входят ни в отпуск, ни в норму рабочих дней месяца, поэтому и зарплату не уменьшают.</p>
+          <p>Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют.</p>
+          <p>Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
+        </div>
+      </div>
       <div id="moneySummary"></div>
       <div class="table-wrap"><table id="moneyTable"></table></div>
-      <p class="tip" id="moneyTip"></p>
-      <p class="fine" style="margin-top:12px">По ст. 139 ТК средний дневной заработок = начисленная зарплата за 12 месяцев / 12 / 29,3. Здесь считаем, что все месяцы одинаковые, поэтому день отпуска оплачивается как средний месячный заработок / 29,3 ≈ 3,41% от него. Праздники внутри отпуска не оплачиваются отпускными: они не входят ни в отпуск, ни в норму рабочих дней месяца, поэтому и зарплату не уменьшают. Дейоффы оплачиваются как обычные рабочие дни и на расчёт не влияют. Отпускные выплачивают не позже чем за 3 дня до начала отпуска (ст. 136 ТК), поэтому они могут прийти в предыдущем месяце; в таблице они отнесены к месяцу, на который выпадают дни отпуска.</p>
     </details>
   </section>
 
   <section class="wrap block save-grid" id="save">
     <details class="card fold" data-fold="save">
       <summary><h2>Сохранить и поделиться</h2><span class="fold-sum">скопировать план, скачать CSV или файл</span></summary>
-      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте в поле «Сохранённый план» наверху.</p>
+      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте в поле <a href="#import" class="jump">«Сохранённый план»</a> наверху.</p>
       <textarea id="planText" class="text-in plan-table" rows="3" readonly wrap="off" aria-label="План по строкам"></textarea>
       <div class="row">
         <button type="button" class="btn primary" id="copyPlan">Скопировать план</button>
