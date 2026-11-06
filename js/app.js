@@ -54,15 +54,6 @@ function bind() {
   sal.addEventListener('input', () => { const v = sal.value.replace(/\D/g, ''); S.salary = v ? Math.min(+v, 1e9) : ''; touched(); render(); });
   sal.addEventListener('blur', () => { sal.value = S.salary ? nf0.format(S.salary) : ''; });
 
-  $('#importApply').addEventListener('click', () => applyImport($('#importText').value));
-  $('#importFileBtn').addEventListener('click', () => $('#importFile').click());
-  $('#importFile').addEventListener('change', e => {
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = () => { applyImport(String(r.result || ''), 'file'); e.target.value = ''; };
-    r.onerror = () => toast('Не удалось прочитать файл');
-    r.readAsText(f);
-  });
 
   document.addEventListener('click', e => {
     const res = e.target.closest('[data-res]'); if (res) { toggleIn(S.prefs.resorts, res.dataset.res); syncChips(); touched(); paint(model); return; }
@@ -106,23 +97,42 @@ function bind() {
   });
   // Сбросить выбор — все настройки подбора к исходным
   $('#clearFilters').addEventListener('click', () => { S.prefs = defaultPrefs(); syncChips(); touched(); render(); });
-  // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
-  const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
-  const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
-  if (!native) document.body.appendChild(backdrop);
-  const openGen = () => {
-    if (native) { if (!dlg.open) dlg.showModal(); return; }
-    dlg.setAttribute('open', ''); dlg.classList.add('modal-fallback'); backdrop.hidden = false; document.documentElement.classList.add('modal-open');
+  // Окна подбора и загрузки плана. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
+  const modal = dlg => {
+    const native = typeof dlg.showModal === 'function';
+    const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
+    if (!native) document.body.appendChild(backdrop);
+    const open = () => {
+      if (native) { if (!dlg.open) dlg.showModal(); return; }
+      dlg.setAttribute('open', ''); dlg.classList.add('modal-fallback'); backdrop.hidden = false; document.documentElement.classList.add('modal-open');
+    };
+    const close = () => {
+      if (native) { if (dlg.open) dlg.close(); return; }
+      dlg.removeAttribute('open'); dlg.classList.remove('modal-fallback'); backdrop.hidden = true; document.documentElement.classList.remove('modal-open');
+    };
+    dlg.addEventListener('click', e => { if (e.target === dlg) close(); });
+    backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !native && dlg.hasAttribute('open')) close(); });
+    return { open, close };
   };
-  const closeGen = () => {
-    if (native) { if (dlg.open) dlg.close(); return; }
-    dlg.removeAttribute('open'); dlg.classList.remove('modal-fallback'); backdrop.hidden = true; document.documentElement.classList.remove('modal-open');
-  };
+  const { open: openGen, close: closeGen } = modal($('#genDialog'));
   $('#genOpen').addEventListener('click', openGen);
   $('#genClose').addEventListener('click', closeGen);
-  dlg.addEventListener('click', e => { if (e.target === dlg) closeGen(); });
-  backdrop.addEventListener('click', closeGen);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !native && dlg.hasAttribute('open')) closeGen(); });
+  // Загрузить план: вставить строки из таблицы или выбрать файл
+  const imp = modal($('#importDialog'));
+  const openImport = () => { $('#importErr').hidden = true; imp.open(); $('#importText').focus(); };
+  $('#importOpen').addEventListener('click', openImport);
+  $('#importClose').addEventListener('click', imp.close);
+  $('#importText').addEventListener('input', () => { $('#importErr').hidden = true; });
+  $('#importApply').addEventListener('click', () => { if (applyImport($('#importText').value)) { $('#importText').value = ''; imp.close(); } });
+  $('#importFileBtn').addEventListener('click', () => $('#importFile').click());
+  $('#importFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { if (applyImport(String(r.result || ''), 'file')) imp.close(); e.target.value = ''; };
+    r.onerror = () => importFail('Не удалось прочитать файл');
+    r.readAsText(f);
+  });
   $('#genBtn').addEventListener('click', () => { closeGen(); generate(); });
   $('#genQuick').addEventListener('click', generate);
 
@@ -144,14 +154,10 @@ function bind() {
     for (let i = s; i <= last; i++) cells[i].classList.add('flash');
     clearTimeout(flashTimer); flashTimer = setTimeout(() => cells.forEach(c => c.classList.remove('flash')), 1800);
   });
-  // Ссылка «Сохранённый план» раскрывает блок вставки наверху
+  // Ссылка «Загрузить план» открывает окно загрузки
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href="#import"]'); if (!a) return;
-    e.preventDefault();
-    const d = $('#import'); d.open = true;
-    const ta = $('#importText');
-    ta.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
-    ta.focus({ preventScroll: true });
+    e.preventDefault(); openImport();
   });
   // Ссылки «Скопировать план» ведут к кнопке копирования
   document.addEventListener('click', e => {

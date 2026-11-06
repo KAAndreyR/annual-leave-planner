@@ -71,18 +71,25 @@ function parsePlan(text) {
   if (!count) return { error: 'Не нашёл ни одного интервала. Нужны строки вида: Основной 05.07.2027 18.07.2027 14 Крит и Родос' };
   return { sel, notes, count, bad };
 }
+// Ошибка загрузки — под полем в окне «Загрузить план» (тост за окном не виден)
+function importFail(msg) {
+  const el = $('#importErr');
+  if (el) { el.textContent = msg; el.hidden = false; } else toast(msg);
+  return false;
+}
 function applyImport(text, source) {
   const res = parsePlan(text);
-  if (res.error) { toast(res.error); return; }
+  if (res.error) return importFail(res.error);
   const before = snapshot();
   if (res.data) {
     const full = serialize();
-    if (!applyData(res.data, { mergeVariants: true })) { toast('Это план не на 2027 год или файл не тот.'); return; }
+    if (!applyData(res.data, { mergeVariants: true })) return importFail('Это план не на 2027 год или файл не тот.');
     before.full = full;
     syncInputs(); commit(before, true); toast('План загружен' + (source ? ' из файла' : '') + '. «Отменить» вернёт прежний.');
-    return;
+    return true;
   }
   S.sel = res.sel; S.notes = res.notes;
   commit(before);
   toast(`Загружено интервалов: ${res.count}` + (res.bad.length ? `. Пропущены непонятные даты: ${res.bad.slice(0, 3).join(', ')}` : ''));
+  return true;
 }

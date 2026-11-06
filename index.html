@@ -34,62 +34,69 @@
 
 <main>
   <section class="wrap block">
-    <div class="setup">
-      <div class="card">
-        <h2>Сколько дней</h2>
+    <div class="top-grid">
+      <div class="card setup-card">
+        <div class="setup-head">
+          <h2>Сколько дней</h2>
+          <button type="button" class="btn ghost sm" id="importOpen">Загрузить план…</button>
+        </div>
         <div class="fields">
           <div class="field">
             <label for="mainDays">Основной отпуск</label>
             <div class="stepper"><button type="button" data-step="mainDays:-1" aria-label="Уменьшить">−</button><input id="mainDays" type="number" min="0" max="120" value="28" inputmode="numeric"><button type="button" data-step="mainDays:1" aria-label="Увеличить">+</button></div>
-            <small>По закону не меньше 28 календарных дней (ст. 115 ТК)</small>
+            <small>Не меньше 28 дней (ст. 115 ТК)</small>
           </div>
           <div class="field">
             <label for="extraDays">Дополнительный</label>
             <div class="stepper"><button type="button" data-step="extraDays:-1" aria-label="Уменьшить">−</button><input id="extraDays" type="number" min="0" max="60" value="3" inputmode="numeric"><button type="button" data-step="extraDays:1" aria-label="Увеличить">+</button></div>
-            <small>Например, за ненормированный день, от 3 дней (ст. 119 ТК)</small>
+            <small>За ненормированный день (ст. 119 ТК)</small>
           </div>
           <div class="field">
             <label for="dayoffDays">Дейоффы</label>
             <div class="stepper"><button type="button" data-step="dayoffDays:-1" aria-label="Уменьшить">−</button><input id="dayoffDays" type="number" min="0" max="60" value="0" inputmode="numeric"><button type="button" data-step="dayoffDays:1" aria-label="Увеличить">+</button></div>
-            <small>Оплачиваемые выходные от работодателя, сверх отпуска. Ставятся только вручную, на отпускные не влияют</small>
+            <small>Оплачиваемые выходные, ставятся вручную</small>
           </div>
           <div class="field">
-            <label for="salary">Средний заработок, ₽ <em>— необязательно</em></label>
-            <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="например, 100 000" autocomplete="off">
-            <small>В месяц. Нужен, только чтобы показать суммы в рублях</small>
+            <label for="salary">Средний заработок, ₽</label>
+            <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="100 000" autocomplete="off">
+            <small>Необязательно: для сумм в рублях</small>
           </div>
         </div>
       </div>
-      <details class="card fold import-box" data-fold="import" id="import">
-        <summary><h2>Сохранённый план</h2><span class="fold-sum">вставить план из таблицы или файла</span></summary>
-        <div class="import-body">
-          <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
-          <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
+      <div class="card gen-card">
+        <div class="gen-head">
+          <div class="gen-head-text">
+            <h2>Собрать отпуск под себя</h2>
+            <p class="gen-sum" data-gensum="card">Цель — «Стандартный», больше ничего не выбрано. Цель, направления, месяцы и особые даты выбираются в «Настроить подбор». Или сразу «Собрать вариант» — подберу с февраля по декабрь.</p>
+          </div>
           <div class="row">
-            <button type="button" class="btn primary" id="importApply">Применить</button>
-            <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
-            <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+            <button type="button" class="btn accent" id="genOpen"><span aria-hidden="true">⚙</span> Настроить подбор…</button>
+            <button type="button" class="btn primary" id="genQuick">Собрать вариант</button>
           </div>
         </div>
-      </details>
+      </div>
     </div>
+    <div class="gen-note" id="genNote" aria-live="polite"></div>
   </section>
 
-  <section class="wrap block">
-    <div class="card gen-card">
-      <div class="gen-head">
-        <div class="gen-head-text">
-          <h2>Собрать отпуск под себя</h2>
-          <p class="gen-sum" data-gensum="card">Цель — «Стандартный», больше ничего не выбрано. Цель, направления, месяцы и особые даты выбираются в «Настроить подбор». Или сразу «Собрать вариант» — подберу с февраля по декабрь.</p>
-        </div>
-        <div class="row">
-          <button type="button" class="btn accent" id="genOpen"><span aria-hidden="true">⚙</span> Настроить подбор…</button>
-          <button type="button" class="btn primary" id="genQuick">Собрать вариант</button>
-        </div>
+  <dialog class="modal modal-sm" id="importDialog" aria-labelledby="importTitle">
+    <div class="modal-in">
+      <header class="modal-head">
+        <h2 id="importTitle">Загрузить план</h2>
+        <button type="button" class="x" id="importClose" aria-label="Закрыть">×</button>
+      </header>
+      <div class="modal-body import-body">
+        <p class="hint">Вставьте план, скопированный кнопкой «Скопировать план» внизу страницы, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+        <textarea id="importText" class="text-in" rows="5" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
+        <p class="import-err" id="importErr" role="alert" hidden></p>
       </div>
-      <div class="gen-note" id="genNote" aria-live="polite"></div>
+      <footer class="modal-foot import-foot">
+        <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
+        <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+        <button type="button" class="btn primary" id="importApply">Применить</button>
+      </footer>
     </div>
-  </section>
+  </dialog>
 
   <dialog class="modal" id="genDialog" aria-labelledby="genTitle">
     <div class="modal-in">
@@ -206,7 +213,7 @@
   <section class="wrap block save-grid" id="save">
     <details class="card fold" data-fold="save">
       <summary><h2>Сохранить и поделиться</h2><span class="fold-sum">скопировать план, скачать CSV или файл</span></summary>
-      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте в поле <a href="#import" class="jump">«Сохранённый план»</a> наверху.</p>
+      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте через <a href="#import" class="jump">«Загрузить план»</a> наверху.</p>
       <textarea id="planText" class="text-in plan-table" rows="3" readonly wrap="off" aria-label="План по строкам"></textarea>
       <div class="row">
         <button type="button" class="btn primary" id="copyPlan">Скопировать план</button>

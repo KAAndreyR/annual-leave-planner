@@ -106,11 +106,13 @@ h1 .yr{color:var(--sea)}
 @media (max-width:820px){.hero-in{grid-template-columns:minmax(0,1fr)}}
 
 /* Пульт */
-.setup{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}
-@media (max-width:900px){.setup{grid-template-columns:minmax(0,1fr)}}
 .card > h2{margin-bottom:14px}
-.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-@media (max-width:480px){.fields{grid-template-columns:minmax(0,1fr)}}
+/* «Сколько дней»: заголовок с кнопкой загрузки, поля в одну строку */
+.setup-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:14px}
+.setup-head h2{margin:0}
+.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 24px}
+@media (max-width:900px){.fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}}
+@media (max-width:480px){.stepper button{width:34px}.stepper input{width:52px}}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field > label{font-weight:600;font-size:14px}
 .field > label em{font-style:normal;font-weight:400;color:var(--muted)}
@@ -126,10 +128,12 @@ h1 .yr{color:var(--sea)}
 .suffix i{font-style:normal;color:var(--muted);font-size:14px}
 textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:13px;line-height:1.5}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-/* «Сохранённый план» свёрнут по умолчанию — не растягиваем его на высоту соседнего блока */
-details.import-box{display:block;align-self:start}
+/* Окно «Загрузить план» */
+.modal.modal-sm{width:min(640px,calc(100vw - 32px))}
 .import-body{display:flex;flex-direction:column;gap:10px}
 .import-body .hint{margin:0}
+.import-err{margin:0;font-size:13.5px;color:var(--red)}
+.modal-foot.import-foot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--line)}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);padding:9px 15px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;line-height:1.2;text-decoration:none}
 .btn:hover{background:var(--hover)}
@@ -218,6 +222,17 @@ details.import-box{display:block;align-self:start}
 .gen-head-text{flex:1 1 320px;min-width:0}
 .gen-head h2{margin-bottom:6px}
 .gen-head .gen-sum{max-width:80ch}
+/* «Сколько дней» и «Собрать отпуск под себя»: на широком экране рядом, кнопки подбора — внизу карточки */
+.top-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:1200px){
+  .top-grid{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+  .top-grid .fields{gap:14px 12px}
+  .top-grid .stepper button{width:34px}
+  .top-grid .stepper input{width:52px}
+  .top-grid .gen-card{display:flex;flex-direction:column}
+  .top-grid .gen-head{flex:1 1 auto;flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:space-between}
+  .top-grid .gen-head-text{flex:0 0 auto}
+}
 .modal{border:0;padding:0;border-radius:16px;background:var(--card);color:var(--ink);width:min(1180px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);box-shadow:0 24px 64px rgba(0,0,0,.28)}
 .modal::backdrop{background:rgba(15,21,28,.55)}
 html:has(dialog[open]){overflow:hidden}
@@ -477,62 +492,69 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
 
 <main>
   <section class="wrap block">
-    <div class="setup">
-      <div class="card">
-        <h2>Сколько дней</h2>
+    <div class="top-grid">
+      <div class="card setup-card">
+        <div class="setup-head">
+          <h2>Сколько дней</h2>
+          <button type="button" class="btn ghost sm" id="importOpen">Загрузить план…</button>
+        </div>
         <div class="fields">
           <div class="field">
             <label for="mainDays">Основной отпуск</label>
             <div class="stepper"><button type="button" data-step="mainDays:-1" aria-label="Уменьшить">−</button><input id="mainDays" type="number" min="0" max="120" value="28" inputmode="numeric"><button type="button" data-step="mainDays:1" aria-label="Увеличить">+</button></div>
-            <small>По закону не меньше 28 календарных дней (ст. 115 ТК)</small>
+            <small>Не меньше 28 дней (ст. 115 ТК)</small>
           </div>
           <div class="field">
             <label for="extraDays">Дополнительный</label>
             <div class="stepper"><button type="button" data-step="extraDays:-1" aria-label="Уменьшить">−</button><input id="extraDays" type="number" min="0" max="60" value="3" inputmode="numeric"><button type="button" data-step="extraDays:1" aria-label="Увеличить">+</button></div>
-            <small>Например, за ненормированный день, от 3 дней (ст. 119 ТК)</small>
+            <small>За ненормированный день (ст. 119 ТК)</small>
           </div>
           <div class="field">
             <label for="dayoffDays">Дейоффы</label>
             <div class="stepper"><button type="button" data-step="dayoffDays:-1" aria-label="Уменьшить">−</button><input id="dayoffDays" type="number" min="0" max="60" value="0" inputmode="numeric"><button type="button" data-step="dayoffDays:1" aria-label="Увеличить">+</button></div>
-            <small>Оплачиваемые выходные от работодателя, сверх отпуска. Ставятся только вручную, на отпускные не влияют</small>
+            <small>Оплачиваемые выходные, ставятся вручную</small>
           </div>
           <div class="field">
-            <label for="salary">Средний заработок, ₽ <em>— необязательно</em></label>
-            <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="например, 100 000" autocomplete="off">
-            <small>В месяц. Нужен, только чтобы показать суммы в рублях</small>
+            <label for="salary">Средний заработок, ₽</label>
+            <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="100 000" autocomplete="off">
+            <small>Необязательно: для сумм в рублях</small>
           </div>
         </div>
       </div>
-      <details class="card fold import-box" data-fold="import" id="import">
-        <summary><h2>Сохранённый план</h2><span class="fold-sum">вставить план из таблицы или файла</span></summary>
-        <div class="import-body">
-          <p class="hint">Вставьте план, скопированный кнопкой <a href="#save" class="jump">«Скопировать план»</a>, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
-          <textarea id="importText" class="text-in" rows="3" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
+      <div class="card gen-card">
+        <div class="gen-head">
+          <div class="gen-head-text">
+            <h2>Собрать отпуск под себя</h2>
+            <p class="gen-sum" data-gensum="card">Цель — «Стандартный», больше ничего не выбрано. Цель, направления, месяцы и особые даты выбираются в «Настроить подбор». Или сразу «Собрать вариант» — подберу с февраля по декабрь.</p>
+          </div>
           <div class="row">
-            <button type="button" class="btn primary" id="importApply">Применить</button>
-            <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
-            <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+            <button type="button" class="btn accent" id="genOpen"><span aria-hidden="true">⚙</span> Настроить подбор…</button>
+            <button type="button" class="btn primary" id="genQuick">Собрать вариант</button>
           </div>
         </div>
-      </details>
+      </div>
     </div>
+    <div class="gen-note" id="genNote" aria-live="polite"></div>
   </section>
 
-  <section class="wrap block">
-    <div class="card gen-card">
-      <div class="gen-head">
-        <div class="gen-head-text">
-          <h2>Собрать отпуск под себя</h2>
-          <p class="gen-sum" data-gensum="card">Цель — «Стандартный», больше ничего не выбрано. Цель, направления, месяцы и особые даты выбираются в «Настроить подбор». Или сразу «Собрать вариант» — подберу с февраля по декабрь.</p>
-        </div>
-        <div class="row">
-          <button type="button" class="btn accent" id="genOpen"><span aria-hidden="true">⚙</span> Настроить подбор…</button>
-          <button type="button" class="btn primary" id="genQuick">Собрать вариант</button>
-        </div>
+  <dialog class="modal modal-sm" id="importDialog" aria-labelledby="importTitle">
+    <div class="modal-in">
+      <header class="modal-head">
+        <h2 id="importTitle">Загрузить план</h2>
+        <button type="button" class="x" id="importClose" aria-label="Закрыть">×</button>
+      </header>
+      <div class="modal-body import-body">
+        <p class="hint">Вставьте план, скопированный кнопкой «Скопировать план» внизу страницы, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+        <textarea id="importText" class="text-in" rows="5" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
+        <p class="import-err" id="importErr" role="alert" hidden></p>
       </div>
-      <div class="gen-note" id="genNote" aria-live="polite"></div>
+      <footer class="modal-foot import-foot">
+        <button type="button" class="btn ghost" id="importFileBtn">Загрузить файл плана…</button>
+        <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+        <button type="button" class="btn primary" id="importApply">Применить</button>
+      </footer>
     </div>
-  </section>
+  </dialog>
 
   <dialog class="modal" id="genDialog" aria-labelledby="genTitle">
     <div class="modal-in">
@@ -649,7 +671,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
   <section class="wrap block save-grid" id="save">
     <details class="card fold" data-fold="save">
       <summary><h2>Сохранить и поделиться</h2><span class="fold-sum">скопировать план, скачать CSV или файл</span></summary>
-      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте в поле <a href="#import" class="jump">«Сохранённый план»</a> наверху.</p>
+      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте через <a href="#import" class="jump">«Загрузить план»</a> наверху.</p>
       <textarea id="planText" class="text-in plan-table" rows="3" readonly wrap="off" aria-label="План по строкам"></textarea>
       <div class="row">
         <button type="button" class="btn primary" id="copyPlan">Скопировать план</button>
@@ -1357,20 +1379,27 @@ function parsePlan(text) {
   if (!count) return { error: 'Не нашёл ни одного интервала. Нужны строки вида: Основной 05.07.2027 18.07.2027 14 Крит и Родос' };
   return { sel, notes, count, bad };
 }
+// Ошибка загрузки — под полем в окне «Загрузить план» (тост за окном не виден)
+function importFail(msg) {
+  const el = $('#importErr');
+  if (el) { el.textContent = msg; el.hidden = false; } else toast(msg);
+  return false;
+}
 function applyImport(text, source) {
   const res = parsePlan(text);
-  if (res.error) { toast(res.error); return; }
+  if (res.error) return importFail(res.error);
   const before = snapshot();
   if (res.data) {
     const full = serialize();
-    if (!applyData(res.data, { mergeVariants: true })) { toast('Это план не на 2027 год или файл не тот.'); return; }
+    if (!applyData(res.data, { mergeVariants: true })) return importFail('Это план не на 2027 год или файл не тот.');
     before.full = full;
     syncInputs(); commit(before, true); toast('План загружен' + (source ? ' из файла' : '') + '. «Отменить» вернёт прежний.');
-    return;
+    return true;
   }
   S.sel = res.sel; S.notes = res.notes;
   commit(before);
   toast(`Загружено интервалов: ${res.count}` + (res.bad.length ? `. Пропущены непонятные даты: ${res.bad.slice(0, 3).join(', ')}` : ''));
+  return true;
 }
 </script>
 <script>
@@ -1913,15 +1942,6 @@ function bind() {
   sal.addEventListener('input', () => { const v = sal.value.replace(/\D/g, ''); S.salary = v ? Math.min(+v, 1e9) : ''; touched(); render(); });
   sal.addEventListener('blur', () => { sal.value = S.salary ? nf0.format(S.salary) : ''; });
 
-  $('#importApply').addEventListener('click', () => applyImport($('#importText').value));
-  $('#importFileBtn').addEventListener('click', () => $('#importFile').click());
-  $('#importFile').addEventListener('change', e => {
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = () => { applyImport(String(r.result || ''), 'file'); e.target.value = ''; };
-    r.onerror = () => toast('Не удалось прочитать файл');
-    r.readAsText(f);
-  });
 
   document.addEventListener('click', e => {
     const res = e.target.closest('[data-res]'); if (res) { toggleIn(S.prefs.resorts, res.dataset.res); syncChips(); touched(); paint(model); return; }
@@ -1965,23 +1985,42 @@ function bind() {
   });
   // Сбросить выбор — все настройки подбора к исходным
   $('#clearFilters').addEventListener('click', () => { S.prefs = defaultPrefs(); syncChips(); touched(); render(); });
-  // Окно подбора. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
-  const dlg = $('#genDialog'), native = typeof dlg.showModal === 'function';
-  const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
-  if (!native) document.body.appendChild(backdrop);
-  const openGen = () => {
-    if (native) { if (!dlg.open) dlg.showModal(); return; }
-    dlg.setAttribute('open', ''); dlg.classList.add('modal-fallback'); backdrop.hidden = false; document.documentElement.classList.add('modal-open');
+  // Окна подбора и загрузки плана. Где нет <dialog> (Firefox до 98, Safari до 15.4) — обычный слой поверх страницы
+  const modal = dlg => {
+    const native = typeof dlg.showModal === 'function';
+    const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop'; backdrop.hidden = true;
+    if (!native) document.body.appendChild(backdrop);
+    const open = () => {
+      if (native) { if (!dlg.open) dlg.showModal(); return; }
+      dlg.setAttribute('open', ''); dlg.classList.add('modal-fallback'); backdrop.hidden = false; document.documentElement.classList.add('modal-open');
+    };
+    const close = () => {
+      if (native) { if (dlg.open) dlg.close(); return; }
+      dlg.removeAttribute('open'); dlg.classList.remove('modal-fallback'); backdrop.hidden = true; document.documentElement.classList.remove('modal-open');
+    };
+    dlg.addEventListener('click', e => { if (e.target === dlg) close(); });
+    backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !native && dlg.hasAttribute('open')) close(); });
+    return { open, close };
   };
-  const closeGen = () => {
-    if (native) { if (dlg.open) dlg.close(); return; }
-    dlg.removeAttribute('open'); dlg.classList.remove('modal-fallback'); backdrop.hidden = true; document.documentElement.classList.remove('modal-open');
-  };
+  const { open: openGen, close: closeGen } = modal($('#genDialog'));
   $('#genOpen').addEventListener('click', openGen);
   $('#genClose').addEventListener('click', closeGen);
-  dlg.addEventListener('click', e => { if (e.target === dlg) closeGen(); });
-  backdrop.addEventListener('click', closeGen);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !native && dlg.hasAttribute('open')) closeGen(); });
+  // Загрузить план: вставить строки из таблицы или выбрать файл
+  const imp = modal($('#importDialog'));
+  const openImport = () => { $('#importErr').hidden = true; imp.open(); $('#importText').focus(); };
+  $('#importOpen').addEventListener('click', openImport);
+  $('#importClose').addEventListener('click', imp.close);
+  $('#importText').addEventListener('input', () => { $('#importErr').hidden = true; });
+  $('#importApply').addEventListener('click', () => { if (applyImport($('#importText').value)) { $('#importText').value = ''; imp.close(); } });
+  $('#importFileBtn').addEventListener('click', () => $('#importFile').click());
+  $('#importFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { if (applyImport(String(r.result || ''), 'file')) imp.close(); e.target.value = ''; };
+    r.onerror = () => importFail('Не удалось прочитать файл');
+    r.readAsText(f);
+  });
   $('#genBtn').addEventListener('click', () => { closeGen(); generate(); });
   $('#genQuick').addEventListener('click', generate);
 
@@ -2003,14 +2042,10 @@ function bind() {
     for (let i = s; i <= last; i++) cells[i].classList.add('flash');
     clearTimeout(flashTimer); flashTimer = setTimeout(() => cells.forEach(c => c.classList.remove('flash')), 1800);
   });
-  // Ссылка «Сохранённый план» раскрывает блок вставки наверху
+  // Ссылка «Загрузить план» открывает окно загрузки
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href="#import"]'); if (!a) return;
-    e.preventDefault();
-    const d = $('#import'); d.open = true;
-    const ta = $('#importText');
-    ta.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
-    ta.focus({ preventScroll: true });
+    e.preventDefault(); openImport();
   });
   // Ссылки «Скопировать план» ведут к кнопке копирования
   document.addEventListener('click', e => {
