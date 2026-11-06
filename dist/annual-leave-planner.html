@@ -112,20 +112,25 @@ h1 .yr{color:var(--sea)}
 .setup-head h2{margin:0}
 .fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 24px}
 @media (max-width:900px){.fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}}
-@media (max-width:480px){.stepper button{width:34px}.stepper input{width:52px}}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+@supports (grid-template-rows:subgrid){
+  .field{display:grid;grid-row:span 3;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:start}
+  .field > label{align-self:end}
+  .field > .suffix{align-self:stretch}
+}
 .field > label{font-weight:600;font-size:14px}
 .field > label em{font-style:normal;font-weight:400;color:var(--muted)}
 .field small{color:var(--muted);font-size:12.5px;line-height:1.35}
-.stepper{display:flex;align-items:stretch;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;background:var(--card);width:max-content;max-width:100%}
+.stepper{display:flex;align-items:stretch;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;background:var(--card);width:100%}
 .stepper button{border:0;background:var(--hover);width:40px;font-size:18px;cursor:pointer}
 .stepper button:hover{background:var(--line)}
-.stepper input{width:64px;border:0;text-align:center;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;background:transparent;padding:8px 0;-moz-appearance:textfield}
+.stepper input{flex:1 1 0;min-width:0;width:auto;border:0;text-align:center;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;background:transparent;padding:8px 0;-moz-appearance:textfield}
 .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+@media (max-width:480px){.stepper button{width:34px}}
 .text-in{border:1px solid var(--line-strong);border-radius:10px;background:var(--card);padding:9px 12px;width:100%;font-variant-numeric:tabular-nums}
-.suffix{display:flex;align-items:center;gap:8px}
-.suffix .text-in{width:90px}
-.suffix i{font-style:normal;color:var(--muted);font-size:14px}
+.suffix{position:relative;display:flex}
+.suffix .text-in{padding-right:30px}
+.suffix i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--muted);font-size:14px;pointer-events:none}
 textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:13px;line-height:1.5}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 /* Окно «Загрузить план» */
@@ -177,9 +182,8 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
 /* Телефон: панель кистей компактнее, «Отдых всего» прячем — он есть в проверках */
 @media (max-width:600px){
   .toolbar{gap:6px;padding-block:8px}
-  .seg button{padding-top:7px;padding-bottom:7px}
   .seg{width:100%}
-  .seg button{flex:1 1 0;justify-content:center;padding:8px 4px;font-size:13px;gap:5px;min-width:0}
+  .toolbar .seg button{flex:1 1 auto;justify-content:center;padding:7px 6px;font-size:13px;gap:5px;min-width:0}
   .toolbar .btn.sm{padding:6px 9px;font-size:12.5px}
   .tally{margin-left:0;gap:4px}
   .legend-link{margin-left:auto}
@@ -228,7 +232,6 @@ textarea.text-in{resize:vertical;min-height:72px;font-family:var(--font-mono);fo
   .top-grid{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
   .top-grid .fields{gap:14px 12px}
   .top-grid .stepper button{width:34px}
-  .top-grid .stepper input{width:52px}
   .top-grid .gen-card{display:flex;flex-direction:column}
   .top-grid .gen-head{flex:1 1 auto;flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:space-between}
   .top-grid .gen-head-text{flex:0 0 auto}
@@ -274,11 +277,12 @@ a.jump{color:var(--sea);text-underline-offset:2px}
 .seg button{border:0;background:transparent;padding:8px 12px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;color:var(--ink)}
 .seg button + button{border-left:1px solid var(--line)}
 .seg button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+@media (max-width:360px){.toolbar .seg button{padding-inline:4px;font-size:12px;gap:4px}.card{padding:16px}.fields{column-gap:12px}}
 .sw{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
 .sw.m{background:var(--sea)}
 .sw.e{background:var(--sun)}
 .sw.d{background:var(--doff)}
-.sw.x{border:1.5px dashed currentColor}
+.sw.er{border:1.5px dashed currentColor}
 .toggle{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer;user-select:none}
 .toggle input{width:16px;height:16px;accent-color:var(--sea)}
 .tally{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px}
@@ -515,9 +519,9 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
             <small>Оплачиваемые выходные, ставятся вручную</small>
           </div>
           <div class="field">
-            <label for="salary">Средний заработок, ₽</label>
-            <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="100 000" autocomplete="off">
-            <small>Необязательно: для сумм в рублях</small>
+            <label for="salary">Средний заработок</label>
+            <div class="suffix"><input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="100 000" autocomplete="off"><i aria-hidden="true">₽</i></div>
+            <small>Необязательно. Без него суммы — в % от заработка</small>
           </div>
         </div>
       </div>
@@ -611,7 +615,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
         <button type="button" role="radio" aria-checked="true" data-brush="1"><span class="sw m"></span>Основной</button>
         <button type="button" role="radio" aria-checked="false" data-brush="2"><span class="sw e"></span>Доп.</button>
         <button type="button" role="radio" aria-checked="false" data-brush="3"><span class="sw d"></span>Дейофф</button>
-        <button type="button" role="radio" aria-checked="false" data-brush="0"><span class="sw x"></span>Ластик</button>
+        <button type="button" role="radio" aria-checked="false" data-brush="0"><span class="sw er"></span>Ластик</button>
       </div>
       <button type="button" class="btn ghost sm" id="undoBtn">Отменить</button>
       <button type="button" class="btn ghost sm" id="clearBtn">Очистить</button>
@@ -1097,7 +1101,7 @@ function buildCalendar() {
 }
 function buildChips() {
   $('#goalSeg').innerHTML = GOALS.map(g => `<button type="button" class="goal" role="radio" data-goal="${g.id}" aria-checked="false"><b>${esc(g.name)}</b><span>${esc(g.desc)}</span></button>`).join('');
-  $('#mainDest').innerHTML = '<option value="">Любое — подберу сам</option>' + CATS.map(c => `<optgroup label="${esc(c.name)}">` +
+  $('#mainDest').innerHTML = '<option value="">Любое</option>' + CATS.map(c => `<optgroup label="${esc(c.name)}">` +
     RESORTS.filter(r => r.cat === c.id && !r.winIdx).map(r => `<option value="${r.id}">${esc(r.name)}${r.where && r.where !== 'Россия' ? ', ' + esc(r.where) : ''} · ${monthsLabel(resortMonths(r))}</option>`).join('') + '</optgroup>').join('');
   $('#resHead').textContent = 'Куда или зачем · ' + RESORTS.length + ' ' + plural(RESORTS.length, 'вариант', 'варианта', 'вариантов');
   $('#resortChips').innerHTML = CATS.map(c => {

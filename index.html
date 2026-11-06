@@ -57,9 +57,9 @@
             <small>Оплачиваемые выходные, ставятся вручную</small>
           </div>
           <div class="field">
-            <label for="salary">Средний заработок, ₽</label>
-            <input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="100 000" autocomplete="off">
-            <small>Необязательно: для сумм в рублях</small>
+            <label for="salary">Средний заработок</label>
+            <div class="suffix"><input id="salary" class="text-in" type="text" inputmode="numeric" placeholder="100 000" autocomplete="off"><i aria-hidden="true">₽</i></div>
+            <small>Необязательно. Без него суммы — в % от заработка</small>
           </div>
         </div>
       </div>
@@ -153,7 +153,7 @@
         <button type="button" role="radio" aria-checked="true" data-brush="1"><span class="sw m"></span>Основной</button>
         <button type="button" role="radio" aria-checked="false" data-brush="2"><span class="sw e"></span>Доп.</button>
         <button type="button" role="radio" aria-checked="false" data-brush="3"><span class="sw d"></span>Дейофф</button>
-        <button type="button" role="radio" aria-checked="false" data-brush="0"><span class="sw x"></span>Ластик</button>
+        <button type="button" role="radio" aria-checked="false" data-brush="0"><span class="sw er"></span>Ластик</button>
       </div>
       <button type="button" class="btn ghost sm" id="undoBtn">Отменить</button>
       <button type="button" class="btn ghost sm" id="clearBtn">Очистить</button>

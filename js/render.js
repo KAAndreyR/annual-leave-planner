@@ -40,7 +40,7 @@ function buildCalendar() {
 }
 function buildChips() {
   $('#goalSeg').innerHTML = GOALS.map(g => `<button type="button" class="goal" role="radio" data-goal="${g.id}" aria-checked="false"><b>${esc(g.name)}</b><span>${esc(g.desc)}</span></button>`).join('');
-  $('#mainDest').innerHTML = '<option value="">Любое — подберу сам</option>' + CATS.map(c => `<optgroup label="${esc(c.name)}">` +
+  $('#mainDest').innerHTML = '<option value="">Любое</option>' + CATS.map(c => `<optgroup label="${esc(c.name)}">` +
     RESORTS.filter(r => r.cat === c.id && !r.winIdx).map(r => `<option value="${r.id}">${esc(r.name)}${r.where && r.where !== 'Россия' ? ', ' + esc(r.where) : ''} · ${monthsLabel(resortMonths(r))}</option>`).join('') + '</optgroup>').join('');
   $('#resHead').textContent = 'Куда или зачем · ' + RESORTS.length + ' ' + plural(RESORTS.length, 'вариант', 'варианта', 'вариантов');
   $('#resortChips').innerHTML = CATS.map(c => {
