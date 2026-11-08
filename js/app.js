@@ -28,7 +28,9 @@ function toast(msg, action) {
   const t = $('#toast'); t.textContent = '';
   const s = document.createElement('span'); s.textContent = msg; t.appendChild(s);
   if (action) { const b = document.createElement('button'); b.type = 'button'; b.className = 'toast-btn'; b.textContent = action.label; b.onclick = () => { hideToast(); action.fn(); }; t.appendChild(b); }
-  t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, action ? 6000 : 3400);
+  t.hidden = false; clearTimeout(toastTimer);
+  const arm = () => { clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, action ? 6000 : 3400); };
+  if (document.hidden) document.addEventListener('visibilitychange', arm, { once: true }); else arm();
 }
 
 // В буфер обмена; если браузер не даёт — через скрытое поле, иначе fallback
@@ -234,11 +236,25 @@ function bind() {
     if (!text) { toast('План пуст — отметьте дни'); return; }
     copyText(text, 'План скопирован', () => { ta.focus(); ta.select(); toast('Выделил строку — нажмите Ctrl+C'); });
   });
-  // Кнопка в заголовке «Сохранить и поделиться»: не сворачивает и не разворачивает блок
+  // «Поделиться» — системное меню телефона; на компьютере остаётся только копирование
+  const shareText = 'Ссылка скопирована — по ней откроется этот план';
+  if (typeof navigator.share === 'function' && matchMedia('(pointer: coarse)').matches) {
+    $('#shareLink').hidden = false; $('#copyLink').classList.remove('primary');
+  }
+  $('#shareLink').addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    if (!S.sel.some(v => v)) { toast('План пуст — отметьте дни'); return; }
+    const url = shareUrl();
+    navigator.share({ title: 'Отпуск 2027', text: 'План отпуска на 2027 год', url }).catch(err => {
+      if (err && err.name === 'AbortError') return; // закрыли меню
+      copyText(url, shareText, () => toast('Не получилось поделиться. Ссылка на план — в адресной строке'));
+    });
+  });
+  // Кнопки в заголовке «Сохранить и поделиться»: не сворачивают и не разворачивают блок
   $('#copyLink').addEventListener('click', e => {
     e.preventDefault(); e.stopPropagation();
     if (!S.sel.some(v => v)) { toast('План пуст — отметьте дни'); return; }
-    copyText(shareUrl(), 'Ссылка скопирована — по ней откроется этот план', () => toast('Не получилось скопировать. Ссылка на план — в адресной строке'));
+    copyText(shareUrl(), shareText, () => toast('Не получилось скопировать. Ссылка на план — в адресной строке'));
   });
   $('#dlJson').addEventListener('click', () => saveFile('vacation-2027.json', JSON.stringify(serialize(), null, 2)));
   $('#dlCsv').addEventListener('click', () => {
@@ -300,6 +316,33 @@ catch (e) {
   toast('Сохранённый план повреждён — открыл пример');
 }
 // План из ссылки важнее сохранённого в браузере; без плана в ссылке — кладём туда свой
-if (applyLink(location.hash, 'open') !== true) syncUrl();
+const openedLink = applyLink(location.hash, 'open') === true;
+if (!openedLink) syncUrl();
 window.addEventListener('hashchange', () => { if (applyLink(location.hash, 'open') !== true) syncUrl(); });
+
+// ---------- Новая версия ----------
+// GitHub Pages разрешает браузеру 10 минут брать страницу из кеша, а встроенные браузеры мессенджеров
+// держат её и дольше. Сверяем метку ?v= у своих скриптов с опубликованной страницей.
+const myVer = (() => { const s = document.querySelector('script[src*="?v="]'); const m = s && /[?&]v=([0-9a-f]+)/.exec(s.getAttribute('src')); return m ? m[1] : null; })();
+async function checkVersion(autoReload) {
+  if (!myVer || typeof fetch !== 'function') return; // локальный запуск или файл
+  let ver = null;
+  try {
+    // no-cache: браузер переспрашивает сервер и кладёт свежую страницу в кеш — перезагрузка возьмёт её
+    const r = await fetch(location.pathname, { cache: 'no-cache' });
+    const m = r.ok && /[?&]v=([0-9a-f]+)"/.exec(await r.text());
+    ver = m ? m[1] : null;
+  } catch (e) { return; }
+  if (!ver || ver === myVer) return;
+  const reload = () => { writeUrl(); location.reload(); };
+  // Сразу после открытия — обновляемся сами (план в браузере и в ссылке не теряется), но один раз на версию
+  let tried = null; try { tried = sessionStorage.getItem('vacation-2027-upd'); } catch (e) {}
+  if (autoReload && tried !== ver) { try { sessionStorage.setItem('vacation-2027-upd', ver); } catch (e) {} reload(); return; }
+  const offer = () => { if (!$('#toast').hidden) { setTimeout(offer, 2000); return; } toast('Вышла новая версия планировщика', { label: 'Обновить', fn: reload }); };
+  offer();
+}
+// Если открыли по ссылке и показали «Вернуть прежний», сами не перезагружаем — только предлагаем
+checkVersion(!openedLink);
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 60000) checkVersion(false); });
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };
