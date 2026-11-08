@@ -256,6 +256,13 @@ details.fold > summary::before{content:"";grid-row:1;width:7px;height:7px;border
 details.fold[open] > summary::before{transform:rotate(45deg)}
 details.fold[open] > summary{margin-bottom:0;padding-bottom:14px}
 details.fold > summary h2{margin:0;grid-column:2}
+/* Кнопка в заголовке свёрнутого блока («Скопировать ссылку») */
+details.fold > summary.act{grid-template-columns:auto minmax(0,1fr) auto}
+summary.act .fold-act{grid-column:3;grid-row:1 / span 2;margin-left:8px}
+@media (max-width:600px){
+  details.fold > summary.act{grid-template-columns:auto minmax(0,1fr)}
+  summary.act .fold-act{grid-column:2;grid-row:auto;justify-self:start;margin:8px 0 0}
+}
 details.fold > summary:hover h2{color:var(--sea)}
 details.fold > summary:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .fold-sum{grid-column:2;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -548,7 +555,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
         <button type="button" class="x" id="importClose" aria-label="Закрыть">×</button>
       </header>
       <div class="modal-body import-body">
-        <p class="hint">Вставьте план, скопированный кнопкой «Скопировать план» внизу страницы, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+        <p class="hint">Вставьте ссылку на план или план, скопированный кнопкой «Скопировать план» внизу страницы, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
         <textarea id="importText" class="text-in" rows="5" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
         <p class="import-err" id="importErr" role="alert" hidden></p>
       </div>
@@ -674,11 +681,12 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
 
   <section class="wrap block save-grid" id="save">
     <details class="card fold" data-fold="save">
-      <summary><h2>Сохранить и поделиться</h2><span class="fold-sum">скопировать план, скачать CSV или файл</span></summary>
-      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте через <a href="#import" class="jump">«Загрузить план»</a> наверху.</p>
+      <summary class="act"><h2>Сохранить и поделиться</h2><span class="fold-sum">план в ссылке, строкой, CSV или файлом</span><button type="button" class="btn primary sm fold-act" id="copyLink">Скопировать ссылку</button></summary>
+      <p class="hint">План сам сохраняется в этом браузере и в адресе страницы. Чтобы открыть его на другом устройстве или отправить, скопируйте ссылку: в ней дни, интервалы и направления. Заработок в ссылку не попадает.</p>
+      <p class="hint">Ниже тот же план по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому он вставляется в Excel или Google Таблицы по ячейкам.</p>
       <textarea id="planText" class="text-in plan-table" rows="3" readonly wrap="off" aria-label="План по строкам"></textarea>
       <div class="row">
-        <button type="button" class="btn primary" id="copyPlan">Скопировать план</button>
+        <button type="button" class="btn" id="copyPlan">Скопировать план</button>
         <button type="button" class="btn" id="dlCsv">Скачать для календаря (CSV)</button>
         <button type="button" class="btn ghost" id="dlJson">Скачать файл плана</button>
       </div>
@@ -806,53 +814,53 @@ const CATS = [
 ];
 // Направления одной страны и одного сезона объединены по 2–3
 const RESORTS = [
-  { id:'turkey', cat:'beach', name:'Анталья и Бодрум', where:'Турция', months:[5,6,7,8,9,10] },
-  { id:'egypt', cat:'beach', name:'Хургада и Шарм-эш-Шейх', where:'Египет', months:[1,2,3,4,5,10,11,12] },
-  { id:'uae', cat:'beach', name:'Дубай и Абу-Даби', where:'ОАЭ', months:[1,2,3,4,11,12] },
-  { id:'thai', far:true, cat:'beach', name:'Пхукет и Самуи', where:'Таиланд', months:[1,2,3,4] },
-  { id:'vietnam', far:true, cat:'beach', name:'Нячанг и Дананг', where:'Вьетнам', months:[3,4,5,6,7,8] },
-  { id:'bali', far:true, cat:'beach', name:'Бали', where:'Индонезия', months:[4,5,6,7,8,9,10] },
-  { id:'rusea', cat:'beach', name:'Сочи и Крым', where:'Россия', months:[6,7,8,9] },
-  { id:'greece', cat:'beach', name:'Крит и Родос', where:'Греция', months:[5,6,7,8,9,10] },
-  { id:'canary', cat:'beach', name:'Тенерифе и Гран-Канария', where:'Испания', note:'мягкая зима: днём +21, море +19–20', months:[1,2,3,10,11,12] },
-  { id:'india', far:true, cat:'beach', name:'Гоа и Дели', where:'Индия', note:'пляж и Золотой треугольник; в Дели зимой бывает смог', months:[12,1,2,3] },
-  { id:'rucity', cat:'culture', name:'Петербург, Казань, Калининград', where:'Россия', months:[5,6,7,8,9] },
-  { id:'istanbul', cat:'culture', name:'Стамбул и Каппадокия', where:'Турция', months:[4,5,6,9,10] },
-  { id:'georgia', cat:'culture', name:'Тбилиси и Батуми', where:'Грузия', months:[5,6,9,10] },
-  { id:'uzbek', cat:'culture', name:'Самарканд и Бухара', where:'Узбекистан', months:[4,5,9,10] },
-  { id:'armenia', cat:'culture', name:'Ереван и Дилижан', where:'Армения', months:[4,5,6,9,10] },
-  { id:'morocco', cat:'culture', name:'Марракеш и Агадир', where:'Марокко', months:[3,4,5,10,11] },
-  { id:'italy', cat:'culture', name:'Рим и Флоренция', where:'Италия', months:[4,5,6,9,10] },
-  { id:'vienna', cat:'culture', name:'Вена и Зальцбург', where:'Австрия', note:'ярмарки к Рождеству', months:[12] },
-  { id:'sakura', far:true, cat:'culture', name:'Токио и Киото', where:'Япония', note:'сакура: конец марта – начало апреля', months:[3,4] },
-  { id:'rusnature', cat:'nature', name:'Алтай, Байкал, Карелия', where:'Россия', months:[6,7,8,9] },
-  { id:'caucasus', cat:'nature', name:'Кисловодск и Осетия', where:'Россия', note:'Кавказ', months:[5,6,7,8,9,10] },
-  { id:'fareast', far:true, cat:'nature', name:'Владивосток, Камчатка, Сахалин', where:'Россия', note:'Дальний Восток, можно пожить', months:[7,8,9] },
-  { id:'aurora', cat:'nature', name:'Териберка и Хибины', where:'Россия', note:'северное сияние', months:[1,2,3,11,12] },
-  { id:'norway', cat:'nature', name:'Фьорды и Лофотены', where:'Норвегия', months:[6,7,8] },
-  { id:'madeira', cat:'nature', name:'Мадейра', where:'Португалия', note:'тропы вдоль левад', months:[3,4,5,6,9,10] },
-  { id:'momiji', far:true, cat:'nature', name:'Хаконэ и Никко', where:'Япония', note:'клёны: конец октября – середина ноября', months:[10,11] },
-  { id:'zhangjiajie', far:true, cat:'nature', name:'Чжанцзяцзе и Гуйлинь', where:'Китай', note:'горы-столбы', months:[4,9,10,11] },
-  { id:'safari', far:true, cat:'nature', name:'Серенгети и Занзибар', where:'Танзания', note:'сафари', months:[1,2,6,7,8,9,10] },
-  { id:'skiru', cat:'active', name:'Красная Поляна и Шерегеш', where:'Россия', note:'горные лыжи', months:[12,1,2,3] },
-  { id:'alps', cat:'active', name:'Куршевель и Шамони', where:'Франция', note:'горные лыжи', months:[12,1,2,3] },
-  { id:'niseko', far:true, cat:'active', name:'Нисэко и Фурано', where:'Япония', note:'лыжи по пухляку', months:[12,1,2,3] },
-  { id:'dolomites', cat:'active', name:'Доломиты', where:'Италия', note:'треккинг', months:[6,7,8,9] },
-  { id:'elbrus', cat:'active', name:'Эльбрус и Домбай', where:'Россия', note:'горные походы', months:[6,7,8,9] },
-  { id:'surf', far:true, cat:'active', name:'Велигама и Хиккадува', where:'Шри-Ланка', note:'сёрфинг', months:[12,1,2,3,4] },
-  { id:'dahab', cat:'active', name:'Дахаб и Марса-Алам', where:'Египет', note:'дайвинг и кайт', months:[3,4,5,9,10,11] },
-  { id:'mallorca', cat:'active', name:'Майорка', where:'Испания', note:'велоспорт и скалолазание', months:[3,4,5,9,10] },
-  { id:'nepal', far:true, cat:'active', name:'Аннапурна', where:'Непал', note:'треккинг в Гималаях', months:[3,4,10,11] }
+  { id:'turkey', code:'ant', cat:'beach', name:'Анталья и Бодрум', where:'Турция', months:[5,6,7,8,9,10] },
+  { id:'egypt', code:'hur', cat:'beach', name:'Хургада и Шарм-эш-Шейх', where:'Египет', months:[1,2,3,4,5,10,11,12] },
+  { id:'uae', code:'dub', cat:'beach', name:'Дубай и Абу-Даби', where:'ОАЭ', months:[1,2,3,4,11,12] },
+  { id:'thai', code:'phu', far:true, cat:'beach', name:'Пхукет и Самуи', where:'Таиланд', months:[1,2,3,4] },
+  { id:'vietnam', code:'nha', far:true, cat:'beach', name:'Нячанг и Дананг', where:'Вьетнам', months:[3,4,5,6,7,8] },
+  { id:'bali', code:'bal', far:true, cat:'beach', name:'Бали', where:'Индонезия', months:[4,5,6,7,8,9,10] },
+  { id:'rusea', code:'soc', cat:'beach', name:'Сочи и Крым', where:'Россия', months:[6,7,8,9] },
+  { id:'greece', code:'cre', cat:'beach', name:'Крит и Родос', where:'Греция', months:[5,6,7,8,9,10] },
+  { id:'canary', code:'ten', cat:'beach', name:'Тенерифе и Гран-Канария', where:'Испания', note:'мягкая зима: днём +21, море +19–20', months:[1,2,3,10,11,12] },
+  { id:'india', code:'goa', far:true, cat:'beach', name:'Гоа и Дели', where:'Индия', note:'пляж и Золотой треугольник; в Дели зимой бывает смог', months:[12,1,2,3] },
+  { id:'rucity', code:'spb', cat:'culture', name:'Петербург, Казань, Калининград', where:'Россия', months:[5,6,7,8,9] },
+  { id:'istanbul', code:'ist', cat:'culture', name:'Стамбул и Каппадокия', where:'Турция', months:[4,5,6,9,10] },
+  { id:'georgia', code:'tbi', cat:'culture', name:'Тбилиси и Батуми', where:'Грузия', months:[5,6,9,10] },
+  { id:'uzbek', code:'sam', cat:'culture', name:'Самарканд и Бухара', where:'Узбекистан', months:[4,5,9,10] },
+  { id:'armenia', code:'yer', cat:'culture', name:'Ереван и Дилижан', where:'Армения', months:[4,5,6,9,10] },
+  { id:'morocco', code:'mar', cat:'culture', name:'Марракеш и Агадир', where:'Марокко', months:[3,4,5,10,11] },
+  { id:'italy', code:'rom', cat:'culture', name:'Рим и Флоренция', where:'Италия', months:[4,5,6,9,10] },
+  { id:'vienna', code:'vie', cat:'culture', name:'Вена и Зальцбург', where:'Австрия', note:'ярмарки к Рождеству', months:[12] },
+  { id:'sakura', code:'tok', far:true, cat:'culture', name:'Токио и Киото', where:'Япония', note:'сакура: конец марта – начало апреля', months:[3,4] },
+  { id:'rusnature', code:'alt', cat:'nature', name:'Алтай, Байкал, Карелия', where:'Россия', months:[6,7,8,9] },
+  { id:'caucasus', code:'kis', cat:'nature', name:'Кисловодск и Осетия', where:'Россия', note:'Кавказ', months:[5,6,7,8,9,10] },
+  { id:'fareast', code:'kam', far:true, cat:'nature', name:'Владивосток, Камчатка, Сахалин', where:'Россия', note:'Дальний Восток, можно пожить', months:[7,8,9] },
+  { id:'aurora', code:'ter', cat:'nature', name:'Териберка и Хибины', where:'Россия', note:'северное сияние', months:[1,2,3,11,12] },
+  { id:'norway', code:'nor', cat:'nature', name:'Фьорды и Лофотены', where:'Норвегия', months:[6,7,8] },
+  { id:'madeira', code:'mad', cat:'nature', name:'Мадейра', where:'Португалия', note:'тропы вдоль левад', months:[3,4,5,6,9,10] },
+  { id:'momiji', code:'hak', far:true, cat:'nature', name:'Хаконэ и Никко', where:'Япония', note:'клёны: конец октября – середина ноября', months:[10,11] },
+  { id:'zhangjiajie', code:'zha', far:true, cat:'nature', name:'Чжанцзяцзе и Гуйлинь', where:'Китай', note:'горы-столбы', months:[4,9,10,11] },
+  { id:'safari', code:'saf', far:true, cat:'nature', name:'Серенгети и Занзибар', where:'Танзания', note:'сафари', months:[1,2,6,7,8,9,10] },
+  { id:'skiru', code:'kp', cat:'active', name:'Красная Поляна и Шерегеш', where:'Россия', note:'горные лыжи', months:[12,1,2,3] },
+  { id:'alps', code:'alp', cat:'active', name:'Куршевель и Шамони', where:'Франция', note:'горные лыжи', months:[12,1,2,3] },
+  { id:'niseko', code:'nis', far:true, cat:'active', name:'Нисэко и Фурано', where:'Япония', note:'лыжи по пухляку', months:[12,1,2,3] },
+  { id:'dolomites', code:'dol', cat:'active', name:'Доломиты', where:'Италия', note:'треккинг', months:[6,7,8,9] },
+  { id:'elbrus', code:'elb', cat:'active', name:'Эльбрус и Домбай', where:'Россия', note:'горные походы', months:[6,7,8,9] },
+  { id:'surf', code:'sri', far:true, cat:'active', name:'Велигама и Хиккадува', where:'Шри-Ланка', note:'сёрфинг', months:[12,1,2,3,4] },
+  { id:'dahab', code:'dah', cat:'active', name:'Дахаб и Марса-Алам', where:'Египет', note:'дайвинг и кайт', months:[3,4,5,9,10,11] },
+  { id:'mallorca', code:'mal', cat:'active', name:'Майорка', where:'Испания', note:'велоспорт и скалолазание', months:[3,4,5,9,10] },
+  { id:'nepal', code:'nep', far:true, cat:'active', name:'Аннапурна', where:'Непал', note:'треккинг в Гималаях', months:[3,4,10,11] }
 ];
 // Без поездок. win — точные даты части отпуска [[мес, день], [мес, день]]: такую часть генератор ставит ровно на них
 RESORTS.push(
-  { id:'mayhol', cat:'home', name:'Майские праздники', win:[[5,4],[5,7]], months:[5] },
-  { id:'dacha', cat:'home', name:'Дача: посадки и огород', where:'', months:[5,6] },
-  { id:'harvest', cat:'home', name:'Сбор урожая и заготовки', where:'', note:'грибы, ягоды, соленья', months:[8,9] },
-  { id:'kidsummer', cat:'home', name:'Летние каникулы с детьми', where:'', months:[6,7,8] },
-  { id:'school', cat:'home', name:'С детьми в школу', note:'1 сентября', win:[[8,30],[9,3]], months:[8,9] },
-  { id:'autumnbreak', cat:'home', name:'Осенние каникулы с детьми', note:'даты в школах разные', win:[[10,25],[11,3]], months:[10,11] },
-  { id:'newyear', cat:'home', name:'Подготовка к Новому году', note:'и дальше январские 2028', win:[[12,27],[12,30]], months:[12] }
+  { id:'mayhol', code:'may', cat:'home', name:'Майские праздники', win:[[5,4],[5,7]], months:[5] },
+  { id:'dacha', code:'dac', cat:'home', name:'Дача: посадки и огород', where:'', months:[5,6] },
+  { id:'harvest', code:'ur', cat:'home', name:'Сбор урожая и заготовки', where:'', note:'грибы, ягоды, соленья', months:[8,9] },
+  { id:'kidsummer', code:'let', cat:'home', name:'Летние каникулы с детьми', where:'', months:[6,7,8] },
+  { id:'school', code:'shk', cat:'home', name:'С детьми в школу', note:'1 сентября', win:[[8,30],[9,3]], months:[8,9] },
+  { id:'autumnbreak', code:'osk', cat:'home', name:'Осенние каникулы с детьми', note:'даты в школах разные', win:[[10,25],[11,3]], months:[10,11] },
+  { id:'newyear', code:'ng', cat:'home', name:'Подготовка к Новому году', note:'и дальше январские 2028', win:[[12,27],[12,30]], months:[12] }
 );
 const dayIdx = (d, m) => DAYS.findIndex(D => D.m === m - 1 && D.d === d);
 RESORTS.forEach(r => {
@@ -863,6 +871,8 @@ const TRAVEL = RESORTS.filter(r => r.cat !== 'home');
 // Словари без прототипа: id вроде «constructor» из чужого файла не должны находить Object.prototype
 const dict = obj => Object.assign(Object.create(null), obj);
 const RES_BY_ID = dict(Object.fromEntries(RESORTS.map(r => [r.id, r])));
+// Короткие коды направлений для ссылки на план: 2–3 латинские буквы, без цифр
+const RES_BY_CODE = dict(Object.fromEntries(RESORTS.map(r => [r.code, r])));
 // Старые id из сохранённых планов
 const RES_ALIAS = dict({ antalya:'turkey', hurghada:'egypt', dubai:'uae', phuket:'thai', nhatrang:'vietnam', sochi:'rusea', crimea:'rusea',
   kaliningrad:'rucity', spb:'rucity', kazan:'rucity', altai:'rusnature', baikal:'rusnature', karelia:'rusnature', teriberka:'aurora', srilanka:'surf' });
@@ -1326,8 +1336,9 @@ function loadLocal() {
 function touched() {
   S.updatedAt = Date.now();
   const ok = saveLocal();
-  if (ok === false && localOk !== false) toast('Браузер не даёт сохранять. Скопируйте план кнопкой внизу, чтобы не потерять его.');
+  if (ok === false && localOk !== false) toast('Браузер не даёт сохранять. Скопируйте ссылку на план кнопкой внизу, чтобы не потерять его.');
   localOk = ok;
+  syncUrl();
 }
 async function saveFile(filename, data) {
   try {
@@ -1358,6 +1369,11 @@ function parsePlan(text) {
   text = String(text || '').trim();
   if (!text) return { error: 'Поле пустое. Вставьте план.' };
   if (text[0] === '{') { try { return { data: JSON.parse(text) }; } catch (e) { return { error: 'Это похоже на файл плана, но он повреждён.' }; } }
+  // Ссылка на план
+  if (/(^|[#&])(days|main|extra|dayoff)=/i.test(text)) {
+    const L = parseLink(text);
+    if (L) return L.count || L.hasDays ? { link: L } : { error: 'В ссылке нет ни одного интервала.' };
+  }
   // По строке на интервал: вид, с, по, дней, куда. Столбцы — табуляция или пробелы
   // (на телефоне при копировании табуляция часто превращается в пробелы).
   const sel = new Uint8Array(N), notes = {}, bad = [];
@@ -1392,6 +1408,7 @@ function importFail(msg) {
 function applyImport(text, source) {
   const res = parsePlan(text);
   if (res.error) return importFail(res.error);
+  if (res.link) { applyLinkData(res.link, 'import'); return true; }
   const before = snapshot();
   if (res.data) {
     const full = serialize();
@@ -1404,6 +1421,90 @@ function applyImport(text, source) {
   commit(before);
   toast(`Загружено интервалов: ${res.count}` + (res.bad.length ? `. Пропущены непонятные даты: ${res.bad.slice(0, 3).join(', ')}` : ''));
   return true;
+}
+
+// ---------- План в ссылке ----------
+// #days=28,3,1&main=1-7.03ter,28.06-11.07cre&extra=1-3.11&dayoff=12.02
+// days — основной, дополнительный, дейоффы; интервалы через запятую: «день.месяц»,
+// внутри месяца «5-18.07», через месяц «28.06-11.07», один день «12.02»; буквы в конце — код направления.
+// Заработок, настройки подбора и варианты в ссылку не попадают.
+const SITE_URL = 'https://kaandreyr.github.io/annual-leave-planner/';
+const LINK_KINDS = [['main', 1], ['extra', 2], ['dayoff', 3]];
+const linkDate = i => DAYS[i].d + '.' + pad(DAYS[i].m + 1);
+function planHash(st = S) {
+  const parts = ['days=' + [st.mainDays, st.extraDays, st.dayoffDays].join(',')];
+  for (const [key, kind] of LINK_KINDS) {
+    const ivs = buildIntervals(st.sel, v => v === kind, kind);
+    if (!ivs.length) continue;
+    parts.push(key + '=' + ivs.map(iv => {
+      const range = iv.s === iv.e ? linkDate(iv.s) : (DAYS[iv.s].m === DAYS[iv.e].m ? DAYS[iv.s].d : linkDate(iv.s)) + '-' + linkDate(iv.e);
+      let code = '';
+      if (kind !== 3) for (const k in st.notes) { const i = +k, r = RES_BY_ID[st.notes[k]]; if (i >= iv.s && i <= iv.e && r) { code = r.code || ''; break; } }
+      return range + code;
+    }).join(','));
+  }
+  return parts.length > 1 || parts[0] !== 'days=28,3,0' ? parts.join('&') : '';
+}
+// Принимает ссылку целиком или только часть после #; не план — null
+function parseLink(text) {
+  const p = Object.create(null);
+  for (const kv of String(text || '').trim().replace(/^[^#]*#/, '').split('&')) {
+    const k = kv.indexOf('='); if (k < 1) continue;
+    let v = kv.slice(k + 1); try { v = decodeURIComponent(v); } catch (e) {}
+    p[kv.slice(0, k).toLowerCase()] = v;
+  }
+  if (!('days' in p) && !LINK_KINDS.some(([key]) => key in p)) return null;
+  const sel = new Uint8Array(N), notes = {}, bad = [];
+  let count = 0;
+  for (const [key, kind] of LINK_KINDS) {
+    for (const raw of String(p[key] || '').split(',')) {
+      const t = raw.trim(); if (!t) continue;
+      const m = /^(\d{1,2})(?:\.(\d{1,2}))?(?:-(\d{1,2})\.(\d{1,2}))?([a-z]{2,3})?$/i.exec(t);
+      if (!m || (m[2] == null && m[3] == null)) { bad.push(t); continue; }
+      const a = toIdx(+m[1], +(m[2] || m[4])), b = m[3] != null ? toIdx(+m[3], +m[4]) : a;
+      if (a == null || b == null || b < a) { bad.push(t); continue; }
+      let first = -1;
+      for (let i = a; i <= b; i++) if (kind === 3 ? DAYS[i].work : !DAYS[i].hol) { sel[i] = kind; if (first < 0) first = i; }
+      if (first < 0) { bad.push(t); continue; }
+      count++;
+      const r = m[5] && kind !== 3 ? RES_BY_CODE[m[5].toLowerCase()] : null;
+      if (r) notes[first] = r.id;
+    }
+  }
+  const nums = String(p.days || '').split(',').map(x => parseInt(x, 10));
+  const num = (v, def, max) => Number.isFinite(v) ? clamp(v, 0, max) : def;
+  return { days: [num(nums[0], S.mainDays, 120), num(nums[1], S.extraDays, 60), num(nums[2], S.dayoffDays, 60)], hasDays: 'days' in p, sel, notes, count, bad };
+}
+// Открыть план из ссылки. Свой же план (после перезагрузки) — ничего не делаем
+function applyLinkData(L, how) {
+  const next = { mainDays: L.days[0], extraDays: L.days[1], dayoffDays: L.days[2], sel: L.sel, notes: cleanNotes(L.notes, L.sel) };
+  if (planHash(next) === planHash(S)) { if (S.example) { S.example = false; touched(); render(); } return 'same'; }
+  const hadOwn = !S.example && S.sel.some(v => v);
+  const before = snapshot(); before.full = serialize();
+  Object.assign(S, next);
+  syncInputs(); commit(before);
+  const msg = (how === 'import' ? 'План загружен из ссылки' : 'План открыт по ссылке') + (L.bad.length ? `. Не понял: ${L.bad.slice(0, 3).join(', ')}` : '');
+  toast(msg, hadOwn ? { label: 'Вернуть прежний', fn: () => { if (undo[undo.length - 1] === before) doUndo(); } } : undefined);
+  return true;
+}
+function applyLink(text, how) { const L = parseLink(text); return L ? applyLinkData(L, how) : false; }
+// Адресная строка повторяет план: её можно просто скопировать
+let urlTimer = 0;
+function writeUrl() {
+  clearTimeout(urlTimer);
+  const h = S.example ? '' : planHash();
+  if (location.hash === (h ? '#' + h : '')) return;
+  try { history.replaceState(history.state, '', h ? '#' + h : location.pathname + location.search); } catch (e) {}
+}
+// Не чаще раза в 120 мс (Safari ограничивает replaceState), но перед уходом со страницы — сразу
+function syncUrl() { clearTimeout(urlTimer); urlTimer = setTimeout(writeUrl, 120); }
+window.addEventListener('pagehide', writeUrl);
+// Ссылка для отправки: адрес этой страницы, а если она открыта внутри другой или из файла — адрес сайта
+function shareUrl() {
+  let base = SITE_URL;
+  try { if (/^https?:$/.test(location.protocol) && window.top === window.self) base = location.origin + location.pathname; } catch (e) {}
+  const h = planHash();
+  return base + (h ? '#' + h : '');
 }
 </script>
 <script>
@@ -1923,6 +2024,17 @@ function toast(msg, action) {
   t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, action ? 6000 : 3400);
 }
 
+// В буфер обмена; если браузер не даёт — через скрытое поле, иначе fallback
+function copyText(text, ok, fallback) {
+  const legacy = () => {
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.select();
+    let done = false; try { done = document.execCommand('copy'); } catch (e) {}
+    ta.remove(); if (done) toast(ok); else fallback();
+  };
+  try { navigator.clipboard.writeText(text).then(() => toast(ok), legacy); } catch (e) { legacy(); }
+}
+
 // ---------- Привязки ----------
 function syncInputs() {
   $('#mainDays').value = S.mainDays;
@@ -2087,8 +2199,13 @@ function bind() {
   $('#copyPlan').addEventListener('click', () => {
     const ta = $('#planText'), text = ta.value;
     if (!text) { toast('План пуст — отметьте дни'); return; }
-    const fallback = () => { ta.focus(); ta.select(); toast('Выделил строку — нажмите Ctrl+C'); };
-    try { navigator.clipboard.writeText(text).then(() => toast('План скопирован'), fallback); } catch (e) { fallback(); }
+    copyText(text, 'План скопирован', () => { ta.focus(); ta.select(); toast('Выделил строку — нажмите Ctrl+C'); });
+  });
+  // Кнопка в заголовке «Сохранить и поделиться»: не сворачивает и не разворачивает блок
+  $('#copyLink').addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    if (!S.sel.some(v => v)) { toast('План пуст — отметьте дни'); return; }
+    copyText(shareUrl(), 'Ссылка скопирована — по ней откроется этот план', () => toast('Не получилось скопировать. Ссылка на план — в адресной строке'));
   });
   $('#dlJson').addEventListener('click', () => saveFile('vacation-2027.json', JSON.stringify(serialize(), null, 2)));
   $('#dlCsv').addEventListener('click', () => {
@@ -2149,6 +2266,9 @@ catch (e) {
   loadExample(); syncInputs(); render();
   toast('Сохранённый план повреждён — открыл пример');
 }
+// План из ссылки важнее сохранённого в браузере; без плана в ссылке — кладём туда свой
+if (applyLink(location.hash, 'open') !== true) syncUrl();
+window.addEventListener('hashchange', () => { if (applyLink(location.hash, 'open') !== true) syncUrl(); });
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };
 </script>
 </body>

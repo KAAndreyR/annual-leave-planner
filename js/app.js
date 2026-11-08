@@ -31,6 +31,17 @@ function toast(msg, action) {
   t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, action ? 6000 : 3400);
 }
 
+// В буфер обмена; если браузер не даёт — через скрытое поле, иначе fallback
+function copyText(text, ok, fallback) {
+  const legacy = () => {
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.select();
+    let done = false; try { done = document.execCommand('copy'); } catch (e) {}
+    ta.remove(); if (done) toast(ok); else fallback();
+  };
+  try { navigator.clipboard.writeText(text).then(() => toast(ok), legacy); } catch (e) { legacy(); }
+}
+
 // ---------- Привязки ----------
 function syncInputs() {
   $('#mainDays').value = S.mainDays;
@@ -195,8 +206,13 @@ function bind() {
   $('#copyPlan').addEventListener('click', () => {
     const ta = $('#planText'), text = ta.value;
     if (!text) { toast('План пуст — отметьте дни'); return; }
-    const fallback = () => { ta.focus(); ta.select(); toast('Выделил строку — нажмите Ctrl+C'); };
-    try { navigator.clipboard.writeText(text).then(() => toast('План скопирован'), fallback); } catch (e) { fallback(); }
+    copyText(text, 'План скопирован', () => { ta.focus(); ta.select(); toast('Выделил строку — нажмите Ctrl+C'); });
+  });
+  // Кнопка в заголовке «Сохранить и поделиться»: не сворачивает и не разворачивает блок
+  $('#copyLink').addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    if (!S.sel.some(v => v)) { toast('План пуст — отметьте дни'); return; }
+    copyText(shareUrl(), 'Ссылка скопирована — по ней откроется этот план', () => toast('Не получилось скопировать. Ссылка на план — в адресной строке'));
   });
   $('#dlJson').addEventListener('click', () => saveFile('vacation-2027.json', JSON.stringify(serialize(), null, 2)));
   $('#dlCsv').addEventListener('click', () => {
@@ -257,4 +273,7 @@ catch (e) {
   loadExample(); syncInputs(); render();
   toast('Сохранённый план повреждён — открыл пример');
 }
+// План из ссылки важнее сохранённого в браузере; без плана в ссылке — кладём туда свой
+if (applyLink(location.hash, 'open') !== true) syncUrl();
+window.addEventListener('hashchange', () => { if (applyLink(location.hash, 'open') !== true) syncUrl(); });
 window.__vacation ={ DAYS, MONTH_INFO, S, RESORTS, parsePlan, computeModel, generate, allowedSpec, evalSel, applyData };

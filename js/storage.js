@@ -14,8 +14,9 @@ function loadLocal() {
 function touched() {
   S.updatedAt = Date.now();
   const ok = saveLocal();
-  if (ok === false && localOk !== false) toast('Браузер не даёт сохранять. Скопируйте план кнопкой внизу, чтобы не потерять его.');
+  if (ok === false && localOk !== false) toast('Браузер не даёт сохранять. Скопируйте ссылку на план кнопкой внизу, чтобы не потерять его.');
   localOk = ok;
+  syncUrl();
 }
 async function saveFile(filename, data) {
   try {
@@ -46,6 +47,11 @@ function parsePlan(text) {
   text = String(text || '').trim();
   if (!text) return { error: 'Поле пустое. Вставьте план.' };
   if (text[0] === '{') { try { return { data: JSON.parse(text) }; } catch (e) { return { error: 'Это похоже на файл плана, но он повреждён.' }; } }
+  // Ссылка на план
+  if (/(^|[#&])(days|main|extra|dayoff)=/i.test(text)) {
+    const L = parseLink(text);
+    if (L) return L.count || L.hasDays ? { link: L } : { error: 'В ссылке нет ни одного интервала.' };
+  }
   // По строке на интервал: вид, с, по, дней, куда. Столбцы — табуляция или пробелы
   // (на телефоне при копировании табуляция часто превращается в пробелы).
   const sel = new Uint8Array(N), notes = {}, bad = [];
@@ -80,6 +86,7 @@ function importFail(msg) {
 function applyImport(text, source) {
   const res = parsePlan(text);
   if (res.error) return importFail(res.error);
+  if (res.link) { applyLinkData(res.link, 'import'); return true; }
   const before = snapshot();
   if (res.data) {
     const full = serialize();
@@ -92,4 +99,88 @@ function applyImport(text, source) {
   commit(before);
   toast(`Загружено интервалов: ${res.count}` + (res.bad.length ? `. Пропущены непонятные даты: ${res.bad.slice(0, 3).join(', ')}` : ''));
   return true;
+}
+
+// ---------- План в ссылке ----------
+// #days=28,3,1&main=1-7.03ter,28.06-11.07cre&extra=1-3.11&dayoff=12.02
+// days — основной, дополнительный, дейоффы; интервалы через запятую: «день.месяц»,
+// внутри месяца «5-18.07», через месяц «28.06-11.07», один день «12.02»; буквы в конце — код направления.
+// Заработок, настройки подбора и варианты в ссылку не попадают.
+const SITE_URL = 'https://kaandreyr.github.io/annual-leave-planner/';
+const LINK_KINDS = [['main', 1], ['extra', 2], ['dayoff', 3]];
+const linkDate = i => DAYS[i].d + '.' + pad(DAYS[i].m + 1);
+function planHash(st = S) {
+  const parts = ['days=' + [st.mainDays, st.extraDays, st.dayoffDays].join(',')];
+  for (const [key, kind] of LINK_KINDS) {
+    const ivs = buildIntervals(st.sel, v => v === kind, kind);
+    if (!ivs.length) continue;
+    parts.push(key + '=' + ivs.map(iv => {
+      const range = iv.s === iv.e ? linkDate(iv.s) : (DAYS[iv.s].m === DAYS[iv.e].m ? DAYS[iv.s].d : linkDate(iv.s)) + '-' + linkDate(iv.e);
+      let code = '';
+      if (kind !== 3) for (const k in st.notes) { const i = +k, r = RES_BY_ID[st.notes[k]]; if (i >= iv.s && i <= iv.e && r) { code = r.code || ''; break; } }
+      return range + code;
+    }).join(','));
+  }
+  return parts.length > 1 || parts[0] !== 'days=28,3,0' ? parts.join('&') : '';
+}
+// Принимает ссылку целиком или только часть после #; не план — null
+function parseLink(text) {
+  const p = Object.create(null);
+  for (const kv of String(text || '').trim().replace(/^[^#]*#/, '').split('&')) {
+    const k = kv.indexOf('='); if (k < 1) continue;
+    let v = kv.slice(k + 1); try { v = decodeURIComponent(v); } catch (e) {}
+    p[kv.slice(0, k).toLowerCase()] = v;
+  }
+  if (!('days' in p) && !LINK_KINDS.some(([key]) => key in p)) return null;
+  const sel = new Uint8Array(N), notes = {}, bad = [];
+  let count = 0;
+  for (const [key, kind] of LINK_KINDS) {
+    for (const raw of String(p[key] || '').split(',')) {
+      const t = raw.trim(); if (!t) continue;
+      const m = /^(\d{1,2})(?:\.(\d{1,2}))?(?:-(\d{1,2})\.(\d{1,2}))?([a-z]{2,3})?$/i.exec(t);
+      if (!m || (m[2] == null && m[3] == null)) { bad.push(t); continue; }
+      const a = toIdx(+m[1], +(m[2] || m[4])), b = m[3] != null ? toIdx(+m[3], +m[4]) : a;
+      if (a == null || b == null || b < a) { bad.push(t); continue; }
+      let first = -1;
+      for (let i = a; i <= b; i++) if (kind === 3 ? DAYS[i].work : !DAYS[i].hol) { sel[i] = kind; if (first < 0) first = i; }
+      if (first < 0) { bad.push(t); continue; }
+      count++;
+      const r = m[5] && kind !== 3 ? RES_BY_CODE[m[5].toLowerCase()] : null;
+      if (r) notes[first] = r.id;
+    }
+  }
+  const nums = String(p.days || '').split(',').map(x => parseInt(x, 10));
+  const num = (v, def, max) => Number.isFinite(v) ? clamp(v, 0, max) : def;
+  return { days: [num(nums[0], S.mainDays, 120), num(nums[1], S.extraDays, 60), num(nums[2], S.dayoffDays, 60)], hasDays: 'days' in p, sel, notes, count, bad };
+}
+// Открыть план из ссылки. Свой же план (после перезагрузки) — ничего не делаем
+function applyLinkData(L, how) {
+  const next = { mainDays: L.days[0], extraDays: L.days[1], dayoffDays: L.days[2], sel: L.sel, notes: cleanNotes(L.notes, L.sel) };
+  if (planHash(next) === planHash(S)) { if (S.example) { S.example = false; touched(); render(); } return 'same'; }
+  const hadOwn = !S.example && S.sel.some(v => v);
+  const before = snapshot(); before.full = serialize();
+  Object.assign(S, next);
+  syncInputs(); commit(before);
+  const msg = (how === 'import' ? 'План загружен из ссылки' : 'План открыт по ссылке') + (L.bad.length ? `. Не понял: ${L.bad.slice(0, 3).join(', ')}` : '');
+  toast(msg, hadOwn ? { label: 'Вернуть прежний', fn: () => { if (undo[undo.length - 1] === before) doUndo(); } } : undefined);
+  return true;
+}
+function applyLink(text, how) { const L = parseLink(text); return L ? applyLinkData(L, how) : false; }
+// Адресная строка повторяет план: её можно просто скопировать
+let urlTimer = 0;
+function writeUrl() {
+  clearTimeout(urlTimer);
+  const h = S.example ? '' : planHash();
+  if (location.hash === (h ? '#' + h : '')) return;
+  try { history.replaceState(history.state, '', h ? '#' + h : location.pathname + location.search); } catch (e) {}
+}
+// Не чаще раза в 120 мс (Safari ограничивает replaceState), но перед уходом со страницы — сразу
+function syncUrl() { clearTimeout(urlTimer); urlTimer = setTimeout(writeUrl, 120); }
+window.addEventListener('pagehide', writeUrl);
+// Ссылка для отправки: адрес этой страницы, а если она открыта внутри другой или из файла — адрес сайта
+function shareUrl() {
+  let base = SITE_URL;
+  try { if (/^https?:$/.test(location.protocol) && window.top === window.self) base = location.origin + location.pathname; } catch (e) {}
+  const h = planHash();
+  return base + (h ? '#' + h : '');
 }

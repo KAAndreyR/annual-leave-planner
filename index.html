@@ -86,7 +86,7 @@
         <button type="button" class="x" id="importClose" aria-label="Закрыть">×</button>
       </header>
       <div class="modal-body import-body">
-        <p class="hint">Вставьте план, скопированный кнопкой «Скопировать план» внизу страницы, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
+        <p class="hint">Вставьте ссылку на план или план, скопированный кнопкой «Скопировать план» внизу страницы, — можно прямо из таблицы. По строке на интервал: вид, с, по, дней, куда. Например: <code>Основной 05.07.2027 18.07.2027 14 Крит и Родос</code></p>
         <textarea id="importText" class="text-in" rows="5" placeholder="Основной 05.07.2027 18.07.2027 14 Крит и Родос"></textarea>
         <p class="import-err" id="importErr" role="alert" hidden></p>
       </div>
@@ -212,11 +212,12 @@
 
   <section class="wrap block save-grid" id="save">
     <details class="card fold" data-fold="save">
-      <summary><h2>Сохранить и поделиться</h2><span class="fold-sum">скопировать план, скачать CSV или файл</span></summary>
-      <p class="hint">План сам сохраняется в этом браузере. Ниже он по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому вставляется в Excel или Google Таблицы по ячейкам. Чтобы перенести план на другой компьютер, скопируйте его и вставьте через <a href="#import" class="jump">«Загрузить план»</a> наверху.</p>
+      <summary class="act"><h2>Сохранить и поделиться</h2><span class="fold-sum">план в ссылке, строкой, CSV или файлом</span><button type="button" class="btn primary sm fold-act" id="copyLink">Скопировать ссылку</button></summary>
+      <p class="hint">План сам сохраняется в этом браузере и в адресе страницы. Чтобы открыть его на другом устройстве или отправить, скопируйте ссылку: в ней дни, интервалы и направления. Заработок в ссылку не попадает.</p>
+      <p class="hint">Ниже тот же план по строкам: каждый интервал отдельно, столбцы через табуляцию, поэтому он вставляется в Excel или Google Таблицы по ячейкам.</p>
       <textarea id="planText" class="text-in plan-table" rows="3" readonly wrap="off" aria-label="План по строкам"></textarea>
       <div class="row">
-        <button type="button" class="btn primary" id="copyPlan">Скопировать план</button>
+        <button type="button" class="btn" id="copyPlan">Скопировать план</button>
         <button type="button" class="btn" id="dlCsv">Скачать для календаря (CSV)</button>
         <button type="button" class="btn ghost" id="dlJson">Скачать файл плана</button>
       </div>
