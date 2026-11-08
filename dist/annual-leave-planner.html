@@ -648,7 +648,7 @@ footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
       </div>
     </div>
     <div class="example" id="exampleBanner">
-      <p>Это пример плана, чтобы было видно, как всё работает. Отметьте свои дни поверх, очистите календарь или соберите вариант.</p>
+      <p>Это случайный пример плана, чтобы было видно, как всё работает. Отметьте свои дни поверх, очистите календарь или соберите вариант.</p>
       <button type="button" class="btn sm" id="exampleClear">Очистить календарь</button>
     </div>
     <p class="swipe-hint">Месяцы листаются вбок →</p>
@@ -1907,19 +1907,26 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
   ev.even = evenness(placed);
   return { sel, notes: assignResorts(placed, spec), ev, score: goalScore(ev, goal), janMiss };
 }
-function generate() {
+// Подбор без записи в план: { pick, spec, pre, goal, L } или { error }
+function makePlan() {
   const spec = allowedSpec(), L = S.mainDays, E = S.extraDays, goal = S.prefs.goal;
   spec.doff = new Uint8Array(N); for (let i = 0; i < N; i++) if (S.sel[i] === 3) spec.doff[i] = 1;
-  if (L + E <= 0) { $('#genNote').textContent = 'Укажите наверху, сколько дней отпуска распределять.'; return; }
+  if (L + E <= 0) return { error: 'Укажите наверху, сколько дней отпуска распределять.' };
   const plans = [], pre = presetWins(spec, L);
   for (let t = 0; t < 700 && plans.length < 150; t++) {
     const minFrac = t < 350 ? 0.85 : t < 550 ? 0.5 : 0;
     const p = tryPlan(spec, L, E, minFrac, goal, pre); if (p) plans.push(p);
   }
-  if (!plans.length) { $('#genNote').textContent = 'Не получилось разложить дни. Попробуйте снять часть фильтров.'; return; }
+  if (!plans.length) return { error: 'Не получилось разложить дни. Попробуйте снять часть фильтров.' };
   plans.sort((a, b) => b.score - a.score);
   const pick = rnd(plans.slice(0, Math.min(goal === 'standard' ? 10 : 4, plans.length)));
   for (let i = 0; i < N; i++) if (spec.doff[i] && !pick.sel[i]) pick.sel[i] = 3;
+  return { pick, spec, pre, goal, L };
+}
+function generate() {
+  const res = makePlan();
+  if (res.error) { $('#genNote').textContent = res.error; return; }
+  const { pick, spec, pre, goal, L } = res;
   const before = snapshot();
   S.sel = pick.sel; S.notes = pick.notes; lastClick = null;
   commit(before);
@@ -2279,7 +2286,14 @@ function bind() {
   });
 }
 
+// Пример при первом открытии: случайный вариант от подбора с настройками по умолчанию,
+// а если подбор не сработал — постоянный пример
 function loadExample() {
+  S.sel = new Uint8Array(N); S.notes = {};
+  S.example = true; S.updatedAt = 0;
+  let res = null;
+  try { res = makePlan(); } catch (e) { res = null; }
+  if (res && res.pick) { S.sel = res.pick.sel; S.notes = res.pick.notes; return; }
   const mark = (a, b, k) => { for (let i = a; i <= b; i++) if (!DAYS[i].hol) S.sel[i] = k; };
   const idx = (d, m) => toIdx(d, m);
   S.sel = new Uint8Array(N);

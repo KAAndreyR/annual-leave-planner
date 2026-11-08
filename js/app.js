@@ -285,7 +285,14 @@ function bind() {
   });
 }
 
+// Пример при первом открытии: случайный вариант от подбора с настройками по умолчанию,
+// а если подбор не сработал — постоянный пример
 function loadExample() {
+  S.sel = new Uint8Array(N); S.notes = {};
+  S.example = true; S.updatedAt = 0;
+  let res = null;
+  try { res = makePlan(); } catch (e) { res = null; }
+  if (res && res.pick) { S.sel = res.pick.sel; S.notes = res.pick.notes; return; }
   const mark = (a, b, k) => { for (let i = a; i <= b; i++) if (!DAYS[i].hol) S.sel[i] = k; };
   const idx = (d, m) => toIdx(d, m);
   S.sel = new Uint8Array(N);

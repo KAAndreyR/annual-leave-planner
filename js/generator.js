@@ -313,19 +313,26 @@ function tryPlan(spec, L, E, minFrac, goal, pre) {
   ev.even = evenness(placed);
   return { sel, notes: assignResorts(placed, spec), ev, score: goalScore(ev, goal), janMiss };
 }
-function generate() {
+// Подбор без записи в план: { pick, spec, pre, goal, L } или { error }
+function makePlan() {
   const spec = allowedSpec(), L = S.mainDays, E = S.extraDays, goal = S.prefs.goal;
   spec.doff = new Uint8Array(N); for (let i = 0; i < N; i++) if (S.sel[i] === 3) spec.doff[i] = 1;
-  if (L + E <= 0) { $('#genNote').textContent = 'Укажите наверху, сколько дней отпуска распределять.'; return; }
+  if (L + E <= 0) return { error: 'Укажите наверху, сколько дней отпуска распределять.' };
   const plans = [], pre = presetWins(spec, L);
   for (let t = 0; t < 700 && plans.length < 150; t++) {
     const minFrac = t < 350 ? 0.85 : t < 550 ? 0.5 : 0;
     const p = tryPlan(spec, L, E, minFrac, goal, pre); if (p) plans.push(p);
   }
-  if (!plans.length) { $('#genNote').textContent = 'Не получилось разложить дни. Попробуйте снять часть фильтров.'; return; }
+  if (!plans.length) return { error: 'Не получилось разложить дни. Попробуйте снять часть фильтров.' };
   plans.sort((a, b) => b.score - a.score);
   const pick = rnd(plans.slice(0, Math.min(goal === 'standard' ? 10 : 4, plans.length)));
   for (let i = 0; i < N; i++) if (spec.doff[i] && !pick.sel[i]) pick.sel[i] = 3;
+  return { pick, spec, pre, goal, L };
+}
+function generate() {
+  const res = makePlan();
+  if (res.error) { $('#genNote').textContent = res.error; return; }
+  const { pick, spec, pre, goal, L } = res;
   const before = snapshot();
   S.sel = pick.sel; S.notes = pick.notes; lastClick = null;
   commit(before);
