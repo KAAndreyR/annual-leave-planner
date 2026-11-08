@@ -23,7 +23,7 @@ function saveVariant() {
 
 // ---------- Тост ----------
 let toastTimer = 0;
-function hideToast() { $('#toast').hidden = true; }
+function hideToast() { const t = $('#toast'); t.hidden = true; t.style.transform = t.style.opacity = ''; }
 function toast(msg, action) {
   const t = $('#toast'); t.textContent = '';
   const s = document.createElement('span'); s.textContent = msg; t.appendChild(s);
@@ -50,7 +50,33 @@ function syncInputs() {
   $('#salary').value = S.salary ? nf0.format(S.salary) : '';
   syncChips();
 }
+// Тост убирается смахиванием вбок или вниз и нажатием на текст
+function bindToast() {
+  const t = $('#toast'); let id = null, sx = 0, sy = 0;
+  const shift = e => [e.clientX - sx, e.clientY - sy];
+  t.addEventListener('pointerdown', e => {
+    if (e.target.closest('.toast-btn')) return;
+    id = e.pointerId; sx = e.clientX; sy = e.clientY; t.classList.add('drag');
+    try { t.setPointerCapture(id); } catch (err) {}
+  });
+  t.addEventListener('pointermove', e => {
+    if (e.pointerId !== id) return;
+    const [dx, dy] = shift(e), down = Math.max(0, dy);
+    t.style.transform = `translate(${dx}px, ${down}px)`;
+    t.style.opacity = String(Math.max(0.25, 1 - Math.max(Math.abs(dx) / 180, down / 90)));
+  });
+  const end = (e, cancel) => {
+    if (e.pointerId !== id) return;
+    id = null; t.classList.remove('drag');
+    const [dx, dy] = shift(e);
+    if (!cancel && (Math.abs(dx) > 60 || dy > 30 || (Math.abs(dx) < 6 && Math.abs(dy) < 6))) { clearTimeout(toastTimer); hideToast(); return; }
+    t.style.transform = t.style.opacity = '';
+  };
+  t.addEventListener('pointerup', e => end(e, false));
+  t.addEventListener('pointercancel', e => end(e, true));
+}
 function bind() {
+  bindToast();
   const num = (id, key, min, max) => {
     const el = $('#' + id);
     el.addEventListener('input', () => { const v = parseInt(el.value, 10); if (Number.isFinite(v)) { S[key] = clamp(v, min, max); touched(); render(); } });

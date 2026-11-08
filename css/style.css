@@ -460,7 +460,8 @@ tr.good td:first-child::after{content:"21+";margin-left:6px;font-size:10.5px;fon
 .dl2 dd{margin:0;font-size:14px}
 footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
 
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:12px;font-size:14px;display:flex;gap:12px;align-items:center;max-width:min(560px,calc(100vw - 32px));box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.toast{position:fixed;left:16px;right:16px;margin:0 auto;width:max-content;touch-action:none;user-select:none;cursor:default;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:12px;font-size:14px;display:flex;gap:12px;align-items:center;max-width:min(560px,calc(100vw - 32px));box-shadow:0 8px 24px rgba(0,0,0,.18)}
+@media (prefers-reduced-motion: no-preference){.toast{transition:transform .15s ease,opacity .15s ease}.toast.drag{transition:none}}
 .toast-btn{border:0;background:transparent;color:var(--sun);font-weight:700;cursor:pointer;padding:2px 4px;white-space:nowrap}
 @media (prefers-reduced-motion: no-preference){
   .day{transition:background-color .08s ease}

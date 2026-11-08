@@ -473,7 +473,8 @@ tr.good td:first-child::after{content:"21+";margin-left:6px;font-size:10.5px;fon
 .dl2 dd{margin:0;font-size:14px}
 footer.foot{padding-block:18px 40px;color:var(--muted);font-size:12.5px}
 
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:12px;font-size:14px;display:flex;gap:12px;align-items:center;max-width:min(560px,calc(100vw - 32px));box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.toast{position:fixed;left:16px;right:16px;margin:0 auto;width:max-content;touch-action:none;user-select:none;cursor:default;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:12px;font-size:14px;display:flex;gap:12px;align-items:center;max-width:min(560px,calc(100vw - 32px));box-shadow:0 8px 24px rgba(0,0,0,.18)}
+@media (prefers-reduced-motion: no-preference){.toast{transition:transform .15s ease,opacity .15s ease}.toast.drag{transition:none}}
 .toast-btn{border:0;background:transparent;color:var(--sun);font-weight:700;cursor:pointer;padding:2px 4px;white-space:nowrap}
 @media (prefers-reduced-motion: no-preference){
   .day{transition:background-color .08s ease}
@@ -2016,7 +2017,7 @@ function saveVariant() {
 
 // ---------- Тост ----------
 let toastTimer = 0;
-function hideToast() { $('#toast').hidden = true; }
+function hideToast() { const t = $('#toast'); t.hidden = true; t.style.transform = t.style.opacity = ''; }
 function toast(msg, action) {
   const t = $('#toast'); t.textContent = '';
   const s = document.createElement('span'); s.textContent = msg; t.appendChild(s);
@@ -2043,7 +2044,33 @@ function syncInputs() {
   $('#salary').value = S.salary ? nf0.format(S.salary) : '';
   syncChips();
 }
+// Тост убирается смахиванием вбок или вниз и нажатием на текст
+function bindToast() {
+  const t = $('#toast'); let id = null, sx = 0, sy = 0;
+  const shift = e => [e.clientX - sx, e.clientY - sy];
+  t.addEventListener('pointerdown', e => {
+    if (e.target.closest('.toast-btn')) return;
+    id = e.pointerId; sx = e.clientX; sy = e.clientY; t.classList.add('drag');
+    try { t.setPointerCapture(id); } catch (err) {}
+  });
+  t.addEventListener('pointermove', e => {
+    if (e.pointerId !== id) return;
+    const [dx, dy] = shift(e), down = Math.max(0, dy);
+    t.style.transform = `translate(${dx}px, ${down}px)`;
+    t.style.opacity = String(Math.max(0.25, 1 - Math.max(Math.abs(dx) / 180, down / 90)));
+  });
+  const end = (e, cancel) => {
+    if (e.pointerId !== id) return;
+    id = null; t.classList.remove('drag');
+    const [dx, dy] = shift(e);
+    if (!cancel && (Math.abs(dx) > 60 || dy > 30 || (Math.abs(dx) < 6 && Math.abs(dy) < 6))) { clearTimeout(toastTimer); hideToast(); return; }
+    t.style.transform = t.style.opacity = '';
+  };
+  t.addEventListener('pointerup', e => end(e, false));
+  t.addEventListener('pointercancel', e => end(e, true));
+}
 function bind() {
+  bindToast();
   const num = (id, key, min, max) => {
     const el = $('#' + id);
     el.addEventListener('input', () => { const v = parseInt(el.value, 10); if (Number.isFinite(v)) { S[key] = clamp(v, min, max); touched(); render(); } });
